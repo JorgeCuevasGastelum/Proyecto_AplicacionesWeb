@@ -1,0 +1,28 @@
+  body { background: #f5f5f5; font-family: 'Poppins', sans-serif; }
+  header.header-area { background: rgba(0,0,0,0.85); }
+  header .main-nav .nav li a, header .main-nav .nav li.main-button a { color: #fff; }
+  #content { padding: 100px 30px 30px 30px; }
+  h2, h3, h5 { color: #222 !important; }
+
+  .dashboard-card, .class-card, .instructor-card { 
+    background: #fff; padding: 20px; margin-bottom: 30px; 
+    border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  table th, table td { padding: 10px; text-align: left; vertical-align: middle; }
+  table thead { background: #222; color: #fff; }
+
+  #sidebar { background: #222; color: #fff; padding: 20px; min-height: 100vh; }
+  #sidebar h5 { color: #fff; }
+  #sidebar a { color: #fff; text-decoration: none; display: block; margin: 8px 0; }
+  #sidebar a:hover { text-decoration: underline; }
+
+  .progress { height: 20px; border-radius: 10px; background-color: #eee; overflow: hidden; }
+  .progress-bar { height: 100%; line-height: 20px; color: #fff; font-weight: bold; width: 0; transition: width 1.2s ease-in-out; }
+  .progress-bar-yoga { background-color: #28a745; }
+  .progress-bar-body { background-color: #007bff; }
+  .progress-bar-avanzado { background-color: #ffc107; }
+  .progress-bar-musculacion { background-color: #dc3545; }
+
+  .btn-crud { margin-right: 5px; }
