@@ -1,0 +1,100 @@
+body {
+  background: url('../images/slide-01.jpg') no-repeat center center;
+  background-size: cover;
+  background-attachment: scroll;
+  color: #fff;
+}
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.login-box {
+  background: #fff;
+  padding: 40px 30px;
+  border-radius: 15px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.login-box h2 {
+  color: #fb030a;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.login-box .form-control {
+  margin-bottom: 20px;
+  border-radius: 10px;
+}
+
+.login-box button {
+  background-color: #fb030a;
+  border: none;
+  width: 100%;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.login-box button:hover {
+  background-color: #c90206;
+}
+
+.login-box .back-link {
+  display: block;
+  margin-top: 20px;
+  color: #fb030a;
+  font-weight: 500;
+}
+
+#floating-logo {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  opacity: 0.8;
+  transition: all 0.3s ease-in-out;
+}
+
+#floating-logo img {
+  width: 70px;
+  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.3));
+}
+
+#floating-logo:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Navbar negro transparente */
+.header-area {
+  background-color: rgba(0, 0, 0, 0.75) !important;
+  transition: background-color 0.3s ease-in-out;
+  box-shadow: none !important;
+}
+
+.header-area.header-sticky {
+  background-color: rgba(0, 0, 0, 0.9) !important;
+}
+
+.header-area .main-nav .nav li a {
+  color: #fff !important;
+}
+
+.header-area .main-nav .nav li a:hover,
+.header-area .main-nav .nav li a.active {
+  color: #fb030a !important;
+}
+
+.header-area .logo {
+  color: #fff !important;
+}
