@@ -1,0 +1,45 @@
+/* Navbar oscuro para mantener el contraste */
+    .header-area {
+      background-color: #111 !important;
+    }
+
+    .main-nav .logo,
+    .main-nav .nav li a {
+      color: #fff !important;
+    }
+
+    .main-nav .nav li a.active {
+      color: #fb030a !important;
+    }
+
+    /* Formulario */
+    .registro-form {
+      background: #e6e5e5;
+    }
+
+    /* Botón visible y coherente con el de Admin */
+    .btn-enviar {
+      border-radius: 20px;
+      background-color: #fb030a;
+      color: #fff;
+      border: none;
+      padding: 10px 25px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-enviar:hover {
+      background-color: #fff;
+      color: #fb030a;
+      border: 1px solid #fb030a;
+    }
+
+    /* Título de la sección */
+    .section-heading h2 em {
+      color: #fb030a;
+      font-style: normal;
+    }
+
+    /* Result alert */
+    .alert-success {
+      display: none;
+    }
