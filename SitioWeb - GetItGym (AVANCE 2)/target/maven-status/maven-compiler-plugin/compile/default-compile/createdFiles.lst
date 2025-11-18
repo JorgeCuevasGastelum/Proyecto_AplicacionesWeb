@@ -1,4 +1,7 @@
+Modelo\Cliente.class
+Controlador\ClienteDAO.class
+itson\getitgym\website\resources\JakartaEE8Resource.class
+Servlets\ClienteRegistroServlet.class
 Controlador\Conexion.class
 Servlets\LoginServlet.class
 itson\getitgym\website\JakartaRestConfiguration.class
-itson\getitgym\website\resources\JakartaEE8Resource.class

@@ -4,6 +4,14 @@
         <servlet-name>LoginServlet</servlet-name>
         <servlet-class>Servlets.LoginServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ClienteRegistroServlet</servlet-name>
+        <servlet-class>Servlets.ClienteRegistroServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ClienteRegistroServlet</servlet-name>
+        <url-pattern>/ClienteRegistroServlet</url-pattern>
+    </servlet-mapping>
     <session-config>
         <session-timeout>
             30
