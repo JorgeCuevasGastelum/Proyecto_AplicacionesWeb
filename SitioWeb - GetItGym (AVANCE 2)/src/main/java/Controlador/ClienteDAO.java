@@ -7,6 +7,8 @@ package Controlador;
 import Modelo.Cliente;
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList; 
+import java.util.List;
 
 public class ClienteDAO {
 
@@ -152,4 +154,27 @@ public class ClienteDAO {
         return false;
     }
 
+    // Método para listar clientes en el Panel de Admin
+    public List<Cliente> listarClientes() {
+        List<Cliente> lista = new ArrayList<>();
+        try (Connection conn = Conexion.getConnection()) {
+            // OJO: Aquí hago un JOIN simple para ver los nombres de la clase y suscripción si ya los guardaste con IDs.
+            // Si en tu tabla clientes guardas strings directos, usa "SELECT * FROM clientes".
+            String sql = "SELECT * FROM clientes"; 
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Cliente c = new Cliente();
+                c.setId(rs.getInt("id")); // Asegúrate de tener este campo en tu modelo Cliente
+                c.setNombre(rs.getString("nombre"));
+                c.setEmail(rs.getString("email"));
+                c.setTelefono(rs.getString("telefono"));
+               
+                // c.setClase(...) -> Depende como lo guardes
+                lista.add(c);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return lista;
+    }
+    
 }

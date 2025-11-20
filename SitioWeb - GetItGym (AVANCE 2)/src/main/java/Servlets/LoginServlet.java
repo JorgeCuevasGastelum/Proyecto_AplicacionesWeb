@@ -45,7 +45,7 @@ public class LoginServlet extends HttpServlet {
             if (rs.next()) {
                 HttpSession session = request.getSession();
                 session.setAttribute("admin", usuario);  // guardamos al admin logeado
-                response.sendRedirect("panelAdministradores.jsp");
+                response.sendRedirect("AdminDashboardServlet");
             } else {
                 request.setAttribute("error", "Usuario o contraseña incorrectos");
                 request.getRequestDispatcher("loginPanelAdmin.jsp").forward(request, response);

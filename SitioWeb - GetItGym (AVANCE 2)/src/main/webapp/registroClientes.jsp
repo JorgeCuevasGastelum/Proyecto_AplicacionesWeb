@@ -1,10 +1,24 @@
 <%-- 
     Document   : registroClientes.jsp
-    Created on : 15 nov 2025, 6:09:24 p.m.
+    Created on : 15 nov 2025
     Author     : jorge
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+
+<%-- IMPORTACIONES NECESARIAS PARA TRAER DATOS DE BD --%>
+<%@page import="java.util.List"%>
+<%@page import="Modelo.ClaseGym"%>
+<%@page import="Modelo.Suscripcion"%>
+<%@page import="Controlador.CatalogosDAO"%>
+
+<%
+    // Instanciamos el DAO y traemos las listas de la BD
+    CatalogosDAO catDao = new CatalogosDAO();
+    List<ClaseGym> listaClases = catDao.obtenerClases();
+    List<Suscripcion> listaSuscripciones = catDao.obtenerSuscripciones();
+%>
+
 <!DOCTYPE html>
 <html lang="es">
     <head>
@@ -15,11 +29,9 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/font-awesome.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/templatemo-training-studio.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/registro.css">
-
     </head>
     <body>
 
-        <!-- Header -->
         <header class="header-area header-sticky">
             <div class="container">
                 <div class="row">
@@ -28,7 +40,7 @@
                             <a href="index.html" class="logo">GET IT<em> GYM</em></a>
                             <ul class="nav">
                                 <li><a href="index.html">Inicio</a></li>
-                                <li><a href="#features#features">Nosotros</a></li>
+                                <li><a href="#features">Nosotros</a></li>
                                 <li><a href="index.html#our-classes">Clases</a></li>
                                 <li><a href="registroClientes.jsp" class="active">Registro</a></li>
                                 <li class="scroll-to-section"><a href="#contact-us">Contacto</a></li> 
@@ -43,7 +55,6 @@
             </div>
         </header>
 
-        <!-- Registro -->
         <section class="section" id="registro">
             <div class="container mt-5 pt-5">
                 <div class="row">
@@ -75,25 +86,27 @@
                                     <input name="edad" type="number" class="form-control" placeholder="Edad" required>
                                 </div>
 
+                                <%-- SELECT DE CLASES DINÁMICO --%>
                                 <div class="col-md-6 mb-3">
                                     <select name="clase" class="form-control">
-                                        <option value="sin-clase">-- Registrarse sin clase --</option>
-                                        <option value="primera">Primera Clase - Zumba</option>
-                                        <option value="segunda">Segunda Clase - Box</option>
-                                        <option value="tercera">Tercera Clase - Yoga</option>
-                                        <option value="cuarta">Cuarta Clase - HIT</option>
-                                        <option value="quinta">Quinta Clase - Crossfit</option>
+                                        <option value="0">-- Selecciona una clase --</option>
+                                        <% for(ClaseGym c : listaClases) { %>
+                                            <option value="<%= c.getNombre() %>">
+                                                <%= c.getNombre() %>
+                                            </option>
+                                        <% } %>
                                     </select>
                                 </div>
 
+                                <%-- SELECT DE SUSCRIPCIONES DINÁMICO --%>
                                 <div class="col-md-6 mb-3">
                                     <select name="plazo" class="form-control" required>
                                         <option value="">-- Selecciona el tipo de pase --</option>
-                                        <option value="diario">Pase Diario - $50 MXN</option>
-                                        <option value="semanal">Pase Semanal - $250 MXN</option>
-                                        <option value="mensual">Pase Mensual - $800 MXN</option>
-                                        <option value="trimestral">Pase Trimestral - $2,000 MXN</option>
-                                        <option value="anual">Pase Anual - $7,000 MXN</option>
+                                        <% for(Suscripcion s : listaSuscripciones) { %>
+                                            <option value="<%= s.getTipo() %>">
+                                                <%= s.getTipo() %> - $<%= s.getPrecio() %>
+                                            </option>
+                                        <% } %>
                                     </select>
                                 </div>
 
@@ -111,7 +124,6 @@
             </div>
         </section>
 
-        <!-- ***** Contact Us Area Starts ***** -->
         <section class="section" id="contact-us">
             <div class="container-fluid">
                 <div class="row">
@@ -156,59 +168,39 @@
                 </div>
             </div>
         </section>
-        <!-- ***** Contact Us Area Ends ***** -->
 
-        <!-- ***** Footer Start ***** -->
         <footer>
             <div class="container">
                 <div class="row">
                     <div class="col-lg-12">
-                        <p>© 2025 Get It Gym - Diseñado con ❤️ basado en TemplateMo</p>
+                        <p>© 2025 Get It Gym - Diseñado con ❤️</p>
                     </div>
                 </div>
             </div>
         </footer>
 
-        <!-- Scripts -->
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
         <script>
-            // Detectar parámetro ?exito=1
             const params = new URLSearchParams(window.location.search);
-
             if (params.get("exito") === "1") {
                 Swal.fire({
                     title: "¡Registro exitoso!",
-                    text: "Bienvenido a Get It Gym! \nFavor de pasar a Sucursal para completar su registro",
+                    text: "Bienvenido a Get It Gym!",
                     icon: "success",
                     confirmButtonText: "Aceptar"
-                }).then(() => {
-                    window.location.href = "index.html";
-                });
+                }).then(() => { window.location.href = "index.html"; });
             }
-
             if (params.get("duplicado") === "1") {
                 Swal.fire({
                     title: "Registro duplicado",
-                    text: "Ya existe un cliente con el mismo correo o teléfono.\nPor favor pasa a la sucursal.",
+                    text: "El correo ya está registrado.",
                     icon: "warning",
                     confirmButtonText: "Entendido"
                 });
             }
-
-            if (params.get("error") === "1") {
-                Swal.fire({
-                    title: "Error",
-                    text: "Ocurrió un problema al registrar. Inténtalo más tarde.",
-                    icon: "error",
-                    confirmButtonText: "Aceptar"
-                });
-            }
         </script>
-        <script src="${pageContext.request.contextPath}assets/js/jquery-2.1.0.min.js"></script>
-        <script src="${pageContext.request.contextPath}assets/js/popper.js"></script>
-        <script src="${pageContext.request.contextPath}assets/js/bootstrap.min.js"></script>
-
-
+        <script src="${pageContext.request.contextPath}/assets/js/jquery-2.1.0.min.js"></script>
+        <script src="${pageContext.request.contextPath}/assets/js/popper.js"></script>
+        <script src="${pageContext.request.contextPath}/assets/js/bootstrap.min.js"></script>
     </body>
 </html>
