@@ -8,9 +8,17 @@
         <servlet-name>ClienteRegistroServlet</servlet-name>
         <servlet-class>Servlets.ClienteRegistroServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>EliminarClienteServlet</servlet-name>
+        <servlet-class>Servlets.EliminarClienteServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>ClienteRegistroServlet</servlet-name>
         <url-pattern>/ClienteRegistroServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EliminarClienteServlet</servlet-name>
+        <url-pattern>/EliminarClienteServlet</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

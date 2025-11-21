@@ -6,6 +6,7 @@ Servlets\ClienteRegistroServlet.class
 Modelo\Suscripcion.class
 Servlets\AdminDashboardServlet.class
 Controlador\Conexion.class
+Servlets\EliminarClienteServlet.class
 Modelo\ClaseGym.class
 Servlets\LoginServlet.class
 itson\getitgym\website\JakartaRestConfiguration.class

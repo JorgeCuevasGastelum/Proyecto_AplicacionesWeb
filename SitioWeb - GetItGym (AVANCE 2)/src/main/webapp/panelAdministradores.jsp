@@ -65,7 +65,7 @@
                     <section id="usuarios" class="dashboard-card">
                         <h2><i class="fa fa-users"></i> Usuarios Registrados</h2>
                         <button class="btn btn-success btn-sm mb-2" onclick="agregarUsuario()">Agregar Usuario</button>
-                        
+
                         <div class="table-responsive">
                             <table class="table table-bordered" id="tabla-usuarios">
                                 <thead>
@@ -80,33 +80,35 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% 
+                                    <%
                                         // Recibimos la lista que nos mandó el Servlet
                                         List<Cliente> misClientes = (List<Cliente>) request.getAttribute("misClientes");
-                                        
-                                        if(misClientes != null && !misClientes.isEmpty()) {
-                                            for(Cliente cli : misClientes) { 
+
+                                        if (misClientes != null && !misClientes.isEmpty()) {
+                                            for (Cliente cli : misClientes) {
                                     %>
                                     <tr>
-                                        <td><%= cli.getNombre() %></td>
-                                        <td><%= cli.getEmail() %></td>
-                                        <td><%= cli.getTelefono() %></td>
-                                        <td><%= (cli.getClase() != null) ? cli.getClase() : "Sin clase" %></td>
-                                        <td><%= (cli.getPlazo() != null) ? cli.getPlazo() : "Sin pase" %></td>
-                                        <td><%= cli.getEdad() %></td>
+                                        <td><%= cli.getNombre()%></td>
+                                        <td><%= cli.getEmail()%></td>
+                                        <td><%= cli.getTelefono()%></td>
+                                        <td><%= (cli.getClase() != null) ? cli.getClase() : "Sin clase"%></td>
+                                        <td><%= (cli.getPlazo() != null) ? cli.getPlazo() : "Sin pase"%></td>
+                                        <td><%= cli.getEdad()%></td>
                                         <td>
                                             <button class="btn btn-primary btn-sm btn-crud" onclick="editarFila(this)">Editar</button>
-                                            <button class="btn btn-danger btn-sm btn-crud" onclick="eliminarFila(this)">Eliminar</button>
+                                            <button class="btn btn-danger btn-sm btn-crud" 
+                                                    onclick="eliminarCliente('<%= cli.getId()%>')">Eliminar</button>
+
                                         </td>
                                     </tr>
-                                    <% 
-                                            } // Fin del for
-                                        } else { 
+                                    <%
+                                        } // Fin del for
+                                    } else {
                                     %>
                                     <tr>
                                         <td colspan="7" class="text-center">No hay usuarios registrados o no se cargaron los datos.</td>
                                     </tr>
-                                    <% } %>
+                                    <% }%>
                                 </tbody>
                             </table>
                         </div>
@@ -147,26 +149,38 @@
         <script src="${pageContext.request.contextPath}/assets/js/bootstrap.min.js"></script>
 
         <script>
-            $(document).ready(function () {
-                $('.progress-bar').each(function () {
-                    var width = $(this).attr('style').match(/width:(\d+)%/)[1];
-                    $(this).css('width', '0').animate({width: width + '%'}, 1200);
-                });
-            });
+                                                        $(document).ready(function () {
+                                                            $('.progress-bar').each(function () {
+                                                                var width = $(this).attr('style').match(/width:(\d+)%/)[1];
+                                                                $(this).css('width', '0').animate({width: width + '%'}, 1200);
+                                                            });
+                                                        });
 
-            // Funciones JS solo para efectos visuales por ahora
-            function editarFila(btn) {
-                alert("Funcionalidad de edición pendiente de conectar al Servlet");
-            }
-            function eliminarFila(btn) {
-                if (confirm("¿Eliminar visualmente? (No se borrará de BD aún)")) {
-                    const fila = btn.closest('tr');
-                    fila.remove();
-                }
-            }
-            function agregarUsuario() {
-                alert("Para agregar usuarios, use el formulario de Registro público.");
-            }
+                                                        // Funciones JS solo para efectos visuales por ahora
+                                                        function editarFila(btn) {
+                                                            alert("Funcionalidad de edición pendiente de conectar al Servlet");
+                                                        }
+                                                        function eliminarCliente(idCliente) {
+                                                            if (!confirm("¿Seguro que deseas eliminar este cliente?")) {
+                                                                return;
+                                                            }
+
+                                                            fetch("EliminarClienteServlet?id=" + idCliente, {method: "GET"})
+                                                                    .then(r => r.text())
+                                                                    .then(resp => {
+                                                                        if (resp.trim() === "OK") {
+                                                                            alert("Cliente eliminado exitosamente");
+                                                                            location.reload(); // refresca la tabla
+                                                                        } else {
+                                                                            alert("Error eliminando cliente: " + resp);
+                                                                        }
+                                                                    })
+                                                                    .catch(err => alert("Error en la petición: " + err));
+                                                        }
+
+                                                        function agregarUsuario() {
+                                                            alert("Para agregar usuarios, use el formulario de Registro público.");
+                                                        }
         </script>
     </body>
 </html>

@@ -7,7 +7,7 @@ package Controlador;
 import Modelo.Cliente;
 import java.sql.*;
 import java.time.LocalDate;
-import java.util.ArrayList; 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClienteDAO {
@@ -18,9 +18,9 @@ public class ClienteDAO {
         try (Connection conn = Conexion.getConnection(); PreparedStatement psCliente = conn.prepareStatement(sqlCliente, Statement.RETURN_GENERATED_KEYS)) {
 
             if (existeCliente(conn, c)) {
-            return false; // señalamos error por duplicado
-        }
-            
+                return false; // señalamos error por duplicado
+            }
+
             psCliente.setString(1, c.getNombre());
             psCliente.setString(2, c.getEmail());
             psCliente.setString(3, c.getTelefono());
@@ -156,25 +156,86 @@ public class ClienteDAO {
 
     // Método para listar clientes en el Panel de Admin
     public List<Cliente> listarClientes() {
-        List<Cliente> lista = new ArrayList<>();
-        try (Connection conn = Conexion.getConnection()) {
-            // OJO: Aquí hago un JOIN simple para ver los nombres de la clase y suscripción si ya los guardaste con IDs.
-            // Si en tu tabla clientes guardas strings directos, usa "SELECT * FROM clientes".
-            String sql = "SELECT * FROM clientes"; 
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Cliente c = new Cliente();
-                c.setId(rs.getInt("id")); // Asegúrate de tener este campo en tu modelo Cliente
-                c.setNombre(rs.getString("nombre"));
-                c.setEmail(rs.getString("email"));
-                c.setTelefono(rs.getString("telefono"));
-               
-                // c.setClase(...) -> Depende como lo guardes
-                lista.add(c);
-            }
-        } catch (Exception e) { e.printStackTrace(); }
-        return lista;
-    }
+    List<Cliente> lista = new ArrayList<>();
     
+    try (Connection conn = Conexion.getConnection()) {
+
+        String sql = "SELECT c.id, c.nombre, c.email, c.telefono, c.edad, c.objetivos, "
+                + "cl.nombre AS clase, "
+                + "s.tipo AS suscripcion "
+                + "FROM clientes c "
+                + "LEFT JOIN clases_cliente cc ON cc.id_cliente = c.id "
+                + "LEFT JOIN clases cl ON cl.id = cc.id_clase "
+                + "LEFT JOIN suscripciones_cliente sc ON sc.id_cliente = c.id "
+                + "LEFT JOIN suscripciones s ON s.id = sc.id_suscripcion;";
+
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            Cliente cli = new Cliente();
+
+            cli.setId(rs.getInt("id"));
+            cli.setNombre(rs.getString("nombre"));
+            cli.setEmail(rs.getString("email"));
+            cli.setTelefono(rs.getString("telefono"));
+            cli.setEdad(rs.getInt("edad"));
+            cli.setObjetivos(rs.getString("objetivos"));
+            cli.setClase(rs.getString("clase"));
+            cli.setPlazo(rs.getString("suscripcion"));
+
+            lista.add(cli);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return lista;
+}
+
+
+    public boolean eliminarCliente(int id) {
+
+        String sqlSuscripciones = "DELETE FROM suscripciones_cliente WHERE id_cliente = ?";
+        String sqlClases = "DELETE FROM clases_cliente WHERE id_cliente = ?";
+        String sqlCliente = "DELETE FROM clientes WHERE id = ?";
+
+        try (Connection conn = Conexion.getConnection()) {
+
+            conn.setAutoCommit(false); // iniciar transacción
+
+            // 1. Eliminar suscripciones
+            try (PreparedStatement ps1 = conn.prepareStatement(sqlSuscripciones)) {
+                ps1.setInt(1, id);
+                ps1.executeUpdate();
+            }
+
+            // 2. Eliminar clases
+            try (PreparedStatement ps2 = conn.prepareStatement(sqlClases)) {
+                ps2.setInt(1, id);
+                ps2.executeUpdate();
+            }
+
+            // 3. Eliminar cliente
+            int filas;
+            try (PreparedStatement ps3 = conn.prepareStatement(sqlCliente)) {
+                ps3.setInt(1, id);
+                filas = ps3.executeUpdate();
+            }
+
+            if (filas > 0) {
+                conn.commit();
+                return true;
+            } else {
+                conn.rollback();
+                return false;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }
