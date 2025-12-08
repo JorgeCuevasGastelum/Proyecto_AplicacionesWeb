@@ -156,44 +156,43 @@ public class ClienteDAO {
 
     // Método para listar clientes en el Panel de Admin
     public List<Cliente> listarClientes() {
-    List<Cliente> lista = new ArrayList<>();
-    
-    try (Connection conn = Conexion.getConnection()) {
+        List<Cliente> lista = new ArrayList<>();
 
-        String sql = "SELECT c.id, c.nombre, c.email, c.telefono, c.edad, c.objetivos, "
-                + "cl.nombre AS clase, "
-                + "s.tipo AS suscripcion "
-                + "FROM clientes c "
-                + "LEFT JOIN clases_cliente cc ON cc.id_cliente = c.id "
-                + "LEFT JOIN clases cl ON cl.id = cc.id_clase "
-                + "LEFT JOIN suscripciones_cliente sc ON sc.id_cliente = c.id "
-                + "LEFT JOIN suscripciones s ON s.id = sc.id_suscripcion;";
+        try (Connection conn = Conexion.getConnection()) {
 
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
+            String sql = "SELECT c.id, c.nombre, c.email, c.telefono, c.edad, c.objetivos, "
+                    + "cl.nombre AS clase, "
+                    + "s.tipo AS suscripcion "
+                    + "FROM clientes c "
+                    + "LEFT JOIN clases_cliente cc ON cc.id_cliente = c.id "
+                    + "LEFT JOIN clases cl ON cl.id = cc.id_clase "
+                    + "LEFT JOIN suscripciones_cliente sc ON sc.id_cliente = c.id "
+                    + "LEFT JOIN suscripciones s ON s.id = sc.id_suscripcion;";
 
-        while (rs.next()) {
-            Cliente cli = new Cliente();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
 
-            cli.setId(rs.getInt("id"));
-            cli.setNombre(rs.getString("nombre"));
-            cli.setEmail(rs.getString("email"));
-            cli.setTelefono(rs.getString("telefono"));
-            cli.setEdad(rs.getInt("edad"));
-            cli.setObjetivos(rs.getString("objetivos"));
-            cli.setClase(rs.getString("clase"));
-            cli.setPlazo(rs.getString("suscripcion"));
+            while (rs.next()) {
+                Cliente cli = new Cliente();
 
-            lista.add(cli);
+                cli.setId(rs.getInt("id"));
+                cli.setNombre(rs.getString("nombre"));
+                cli.setEmail(rs.getString("email"));
+                cli.setTelefono(rs.getString("telefono"));
+                cli.setEdad(rs.getInt("edad"));
+                cli.setObjetivos(rs.getString("objetivos"));
+                cli.setClase(rs.getString("clase"));
+                cli.setPlazo(rs.getString("suscripcion"));
+
+                lista.add(cli);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        return lista;
     }
-
-    return lista;
-}
-
 
     public boolean eliminarCliente(int id) {
 
@@ -231,6 +230,51 @@ public class ClienteDAO {
                 conn.rollback();
                 return false;
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean actualizarCliente(int id, String nombre, String email,
+            String telefono, String claseNombre,
+            String plazo, int edad) {
+
+        String sqlUpdateCliente = "UPDATE clientes SET nombre=?, email=?, telefono=?, edad=? WHERE id=?";
+        String sqlDeleteClase = "DELETE FROM clases_cliente WHERE id_cliente=?";
+        String sqlDeleteSus = "DELETE FROM suscripciones_cliente WHERE id_cliente=?";
+
+        try (Connection conn = Conexion.getConnection()) {
+
+            conn.setAutoCommit(false);
+
+            // 1. Actualizar datos del cliente (sin clase/plazo porque no existen ahí)
+            try (PreparedStatement ps1 = conn.prepareStatement(sqlUpdateCliente)) {
+                ps1.setString(1, nombre);
+                ps1.setString(2, email);
+                ps1.setString(3, telefono);
+                ps1.setInt(4, edad);
+                ps1.setInt(5, id);
+                ps1.executeUpdate();
+            }
+
+            // 2. Actualizar clase
+            try (PreparedStatement ps2 = conn.prepareStatement(sqlDeleteClase)) {
+                ps2.setInt(1, id);
+                ps2.executeUpdate();
+            }
+            registrarClaseCliente(conn, id, claseNombre);
+
+            // 3. Actualizar suscripción
+            try (PreparedStatement ps3 = conn.prepareStatement(sqlDeleteSus)) {
+                ps3.setInt(1, id);
+                ps3.executeUpdate();
+            }
+            registrarSuscripcionCliente(conn, id, plazo);
+
+            conn.commit();
+            return true;
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -12,6 +12,10 @@
         <servlet-name>EliminarClienteServlet</servlet-name>
         <servlet-class>Servlets.EliminarClienteServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>EditarClienteServlet</servlet-name>
+        <servlet-class>Servlets.EditarClienteServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>ClienteRegistroServlet</servlet-name>
         <url-pattern>/ClienteRegistroServlet</url-pattern>
@@ -19,6 +23,10 @@
     <servlet-mapping>
         <servlet-name>EliminarClienteServlet</servlet-name>
         <url-pattern>/EliminarClienteServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EditarClienteServlet</servlet-name>
+        <url-pattern>/EditarClienteServlet</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
