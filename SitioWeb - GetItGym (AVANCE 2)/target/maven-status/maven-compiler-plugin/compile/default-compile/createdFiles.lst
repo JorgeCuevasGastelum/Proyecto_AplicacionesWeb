@@ -2,12 +2,15 @@ Controlador\CatalogosDAO.class
 itson\getitgym\website\resources\JakartaEE8Resource.class
 Modelo\Suscripcion.class
 Servlets\AdminDashboardServlet.class
+Servlets\InstructorServlet.class
 Controlador\Conexion.class
 Servlets\EliminarClienteServlet.class
 Modelo\ClaseGym.class
 itson\getitgym\website\JakartaRestConfiguration.class
+Controlador\InstructorDAO.class
 Modelo\Cliente.class
 Controlador\ClienteDAO.class
 Servlets\ClienteRegistroServlet.class
 Servlets\EditarClienteServlet.class
+Modelo\Instructor.class
 Servlets\LoginServlet.class

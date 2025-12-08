@@ -160,14 +160,22 @@ public class ClienteDAO {
 
         try (Connection conn = Conexion.getConnection()) {
 
-            String sql = "SELECT c.id, c.nombre, c.email, c.telefono, c.edad, c.objetivos, "
-                    + "cl.nombre AS clase, "
-                    + "s.tipo AS suscripcion "
+            String sql
+                    = "SELECT "
+                    + "c.id, "
+                    + "ANY_VALUE(c.nombre) AS nombre, "
+                    + "ANY_VALUE(c.email) AS email, "
+                    + "ANY_VALUE(c.telefono) AS telefono, "
+                    + "ANY_VALUE(c.edad) AS edad, "
+                    + "ANY_VALUE(c.objetivos) AS objetivos, "
+                    + "GROUP_CONCAT(DISTINCT cl.nombre SEPARATOR ', ') AS clase, "
+                    + "COALESCE(ANY_VALUE(s.tipo), 'Sin pase') AS suscripcion "
                     + "FROM clientes c "
                     + "LEFT JOIN clases_cliente cc ON cc.id_cliente = c.id "
                     + "LEFT JOIN clases cl ON cl.id = cc.id_clase "
                     + "LEFT JOIN suscripciones_cliente sc ON sc.id_cliente = c.id "
-                    + "LEFT JOIN suscripciones s ON s.id = sc.id_suscripcion;";
+                    + "LEFT JOIN suscripciones s ON s.id = sc.id_suscripcion "
+                    + "GROUP BY c.id";
 
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
