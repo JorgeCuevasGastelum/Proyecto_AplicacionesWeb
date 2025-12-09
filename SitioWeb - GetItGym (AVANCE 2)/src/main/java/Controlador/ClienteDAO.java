@@ -349,46 +349,51 @@ public class ClienteDAO {
         return lista;
     }
 
+// Método para eliminar cliente y todo su historial (Transaccional)
     public boolean eliminarCliente(int id) {
-
-        String sqlSuscripciones = "DELETE FROM suscripciones_cliente WHERE id_cliente = ?";
+        
+        String sqlSus = "DELETE FROM suscripciones_cliente WHERE id_cliente = ?";
         String sqlClases = "DELETE FROM clases_cliente WHERE id_cliente = ?";
         String sqlCliente = "DELETE FROM clientes WHERE id = ?";
+        
+        Connection conn = null;
+        
+        try {
+            conn = Conexion.getConnection();
+            conn.setAutoCommit(false); // IMPORTANTE: Iniciamos modo manual
 
-        try (Connection conn = Conexion.getConnection()) {
-
-            conn.setAutoCommit(false); // iniciar transacción
-
-            // 1. Eliminar suscripciones
-            try (PreparedStatement ps1 = conn.prepareStatement(sqlSuscripciones)) {
-                ps1.setInt(1, id);
-                ps1.executeUpdate();
+            // 1. Eliminar historial de suscripciones
+            try (PreparedStatement ps = conn.prepareStatement(sqlSus)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
             }
 
-            // 2. Eliminar clases
-            try (PreparedStatement ps2 = conn.prepareStatement(sqlClases)) {
-                ps2.setInt(1, id);
-                ps2.executeUpdate();
+            // 2. Eliminar historial de clases
+            try (PreparedStatement ps = conn.prepareStatement(sqlClases)) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
             }
 
-            // 3. Eliminar cliente
-            int filas;
-            try (PreparedStatement ps3 = conn.prepareStatement(sqlCliente)) {
-                ps3.setInt(1, id);
-                filas = ps3.executeUpdate();
-            }
-
-            if (filas > 0) {
-                conn.commit();
-                return true;
-            } else {
-                conn.rollback();
-                return false;
+            // 3. Finalmente, eliminar al cliente
+            try (PreparedStatement ps = conn.prepareStatement(sqlCliente)) {
+                ps.setInt(1, id);
+                int filas = ps.executeUpdate();
+                
+                if (filas > 0) {
+                    conn.commit(); // Confirmamos TODOS los cambios
+                    return true;
+                } else {
+                    conn.rollback(); // Si falló borrar al cliente, deshacemos todo
+                    return false;
+                }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+            try { if (conn != null) conn.rollback(); } catch (Exception ex) {}
             return false;
+        } finally {
+            try { if (conn != null) conn.close(); } catch (Exception e) {}
         }
     }
 

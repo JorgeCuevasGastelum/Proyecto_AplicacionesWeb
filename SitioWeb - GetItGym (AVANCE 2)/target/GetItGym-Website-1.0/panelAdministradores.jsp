@@ -377,6 +377,33 @@
                 });
             }
 
+            // ... (Después del if de UsuarioActualizado) ...
+
+            // CASO: ELIMINADO CON ÉXITO
+            if (msg === 'UsuarioEliminado') {
+                Swal.fire({
+                    title: '¡Eliminado!',
+                    text: 'El usuario ha sido borrado del sistema.',
+                    icon: 'success',
+                    confirmButtonColor: '#fb030a',
+                    background: '#1e1e1e', color: '#fff',
+                    timer: 3000
+                }).then(() => {
+                    // Limpiamos la URL
+                    window.history.replaceState(null, null, window.location.pathname + "?view=usuarios");
+                });
+            }
+
+            // CASO: ERROR AL ELIMINAR
+            if (error === 'NoEliminado' || error === 'IdInvalido') {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudo eliminar el usuario. Intenta de nuevo.',
+                    icon: 'error',
+                    confirmButtonColor: '#fb030a',
+                    background: '#1e1e1e', color: '#fff'
+                });
+            }
             if (error === 'PasswordNoCoincide') {
                 Swal.fire({
                     title: 'Error',
