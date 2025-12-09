@@ -16,6 +16,14 @@
         <servlet-name>EditarClienteServlet</servlet-name>
         <servlet-class>Servlets.EditarClienteServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>EditarInstructorServlet</servlet-name>
+        <servlet-class>Servlets.EditarInstructorServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>EliminarInstructorServlet</servlet-name>
+        <servlet-class>Servlets.EliminarInstructorServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>ClienteRegistroServlet</servlet-name>
         <url-pattern>/ClienteRegistroServlet</url-pattern>
@@ -27,6 +35,14 @@
     <servlet-mapping>
         <servlet-name>EditarClienteServlet</servlet-name>
         <url-pattern>/EditarClienteServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EditarInstructorServlet</servlet-name>
+        <url-pattern>/EditarInstructorServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EliminarInstructorServlet</servlet-name>
+        <url-pattern>/EliminarInstructorServlet</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

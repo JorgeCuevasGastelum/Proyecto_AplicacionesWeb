@@ -5,6 +5,7 @@
 package Modelo;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -34,8 +35,6 @@ public class Instructor {
         this.clasesIds = clasesIds;
         this.activo = activo;
     }
-
-   
 
     public int getId() {
         return id;
@@ -101,5 +100,13 @@ public class Instructor {
         this.clasesIds = clasesIds;
     }
 
-    
+    public String getClasesIdCSV() {
+        if (clasesIds == null || clasesIds.isEmpty()) {
+            return "";
+        }
+        return clasesIds.stream()
+                .map(String::valueOf) // Convertimos cada Integer a String
+                .collect(Collectors.joining(",")); // Los unimos con coma
+    }
+
 }

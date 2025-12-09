@@ -18,7 +18,7 @@ INSERT INTO administradores VALUES
 (1,'admin','admin123');
 
 -- =========================
--- TABLA CLASES
+-- TABLA CLASES (únicas)
 -- =========================
 DROP TABLE IF EXISTS `clases`;
 CREATE TABLE `clases` (
@@ -28,6 +28,18 @@ CREATE TABLE `clases` (
   PRIMARY KEY (`id`)
 );
 
+INSERT INTO clases VALUES
+(1,'Zumba','Clase intensa de baile y cardio'),
+(2,'Box','Entrenamiento de boxeo para condición física'),
+(3,'Yoga','Práctica de estiramiento y relajación'),
+(4,'HIIT','Entrenamiento de alta intensidad'),
+(5,'Crossfit','Entrenamiento funcional avanzado'),
+(6,'Spinning','Cardio intenso en bicicleta estática');
+
+-- =========================
+-- TABLA INSTRUCTORES
+-- =========================
+DROP TABLE IF EXISTS instructores;
 CREATE TABLE instructores (
     id INT NOT NULL AUTO_INCREMENT,
     nombre VARCHAR(150) NOT NULL,
@@ -39,6 +51,10 @@ CREATE TABLE instructores (
     UNIQUE KEY email (email)
 );
 
+-- =========================
+-- TABLA INSTRUCTORES_CLASES
+-- =========================
+DROP TABLE IF EXISTS instructores_clases;
 CREATE TABLE instructores_clases (
     id INT NOT NULL AUTO_INCREMENT,
     id_instructor INT NOT NULL,
@@ -47,21 +63,6 @@ CREATE TABLE instructores_clases (
     FOREIGN KEY (id_instructor) REFERENCES instructores(id),
     FOREIGN KEY (id_clase) REFERENCES clases(id)
 );
-
-
-
-INSERT INTO clases VALUES
-(1,'Zumba','Clase intensa de baile y cardio'),
-(2,'Box','Entrenamiento de boxeo para condición física'),
-(3,'Yoga','Práctica de estiramiento y relajación'),
-(4,'HIT','Entrenamiento de alta intensidad'),
-(5,'Crossfit','Entrenamiento funcional avanzado'),
-(6,'Yoga','Mejora la flexibilidad y reduce el estrés'),
-(7,'Zumba','Ejercicio cardiovascular con baile'),
-(8,'Box','Resistencia física y coordinación'),
-(9,'Crossfit','Entrenamiento funcional completo'),
-(10,'HIIT','Rutinas cortas de alta intensidad'),
-(11,'Spinning','Cardio intenso en bicicleta estática');
 
 -- =========================
 -- TABLA CLIENTES
@@ -75,6 +76,7 @@ CREATE TABLE `clientes` (
   `edad` int,
   `objetivos` text,
   `fecha_registro` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `password` varchar(200) NOT NULL DEFAULT '12345',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 );
@@ -98,7 +100,7 @@ INSERT INTO clientes (id,nombre,email,telefono,edad,objetivos) VALUES
 (16,'Fernanda Díaz','fer@gmail.com','555-1122',28,'Resistencia');
 
 -- =========================
--- TABLA CLASES_CLIENTE
+-- TABLA CLASES_CLIENTE (sin repetidos)
 -- =========================
 DROP TABLE IF EXISTS `clases_cliente`;
 CREATE TABLE `clases_cliente` (
@@ -111,17 +113,22 @@ CREATE TABLE `clases_cliente` (
 );
 
 INSERT INTO clases_cliente (id_cliente,id_clase) VALUES
-(1,1),(2,1),(3,1),(4,1),(5,1),(6,1),
-(7,2),(8,2),(9,2),(10,2),
-(11,3),(12,3),(13,3),(14,3),
-(15,4),(16,4),(1,4),(2,4),
-(3,5),(4,5),(5,5),(6,5),
-(7,6),(8,6),
-(9,7),(10,7),
-(11,8),(12,8),
-(13,9),(14,9),
-(15,10),(16,10),
-(1,11),(2,11);
+(1,1),(1,3),
+(2,2),(2,5),
+(3,3),(3,4),
+(4,4),(4,1),
+(5,1),(5,2),
+(6,3),(6,6),
+(7,5),(7,4),
+(8,1),(8,6),
+(9,4),(9,5),
+(10,3),(10,2),
+(11,1),(11,5),
+(12,6),(12,4),
+(13,2),(13,5),
+(14,3),(14,1),
+(15,5),(15,2),
+(16,4),(16,6);
 
 -- =========================
 -- TABLA SUSCRIPCIONES
@@ -170,6 +177,9 @@ INSERT INTO suscripciones_cliente (id_cliente,id_suscripcion,fecha_fin) VALUES
 (11,5,'2026-11-20'),
 (12,3,'2026-01-20');
 
+-- =========================
+-- INSTRUCTORES + RELACIÓN
+-- =========================
 INSERT INTO instructores(nombre,email,telefono,especialidad) VALUES
 ('Juan Pérez','juan@gym.com','555-9001','Fuerza'),
 ('María López','maria@gym.com','555-9002','Cardio'),
@@ -183,10 +193,3 @@ INSERT INTO instructores_clases(id_instructor,id_clase) VALUES
 (2,4), -- María → HIIT
 (3,3), -- Carlos → Yoga
 (4,5); -- Laura → Crossfit
-
-
--- Agregamos la columna password
-ALTER TABLE clientes ADD COLUMN password VARCHAR(200) NOT NULL AFTER email;
-
--- (Opcional) Ponemos una contraseña por defecto a los usuarios viejos para que no den error
-UPDATE clientes SET password = '12345' WHERE password = '';
