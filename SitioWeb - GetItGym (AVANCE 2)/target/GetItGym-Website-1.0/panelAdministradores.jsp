@@ -1,3 +1,4 @@
+<%@page import="Modelo.Suscripcion"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.List"%>
 <%@page import="Modelo.Cliente"%>
@@ -19,10 +20,26 @@
     List<ClaseGym> listaClases = catDao.obtenerClases();
     List<Cliente> misClientes = (List<Cliente>) request.getAttribute("misClientes");
     List<Instructor> listaInstructores = (List<Instructor>) request.getAttribute("listaInstructores");
+    List<Suscripcion> listaSuscripciones = catDao.obtenerSuscripciones();
+    
 
     // Estadísticas
     Object totalClientesObj = request.getAttribute("totalClientes");
     String totalClientes = totalClientesObj != null ? totalClientesObj.toString() : "0";
+    
+// Lógica para saber qué pestaña activar
+    String view = request.getParameter("view");
+    String activeEstadisticas = (view == null || view.equals("estadisticas")) ? "active" : "";
+    String activeUsuarios = (view != null && view.equals("usuarios")) ? "active" : "";
+    String activeInstructores = (view != null && view.equals("instructores")) ? "active" : "";
+    String activeClases = (view != null && view.equals("clases")) ? "active" : "";
+    
+    // Para el menú lateral (clase CSS)
+    String menuEstadisticas = activeEstadisticas.isEmpty() ? "" : "active";
+    String menuUsuarios = activeUsuarios.isEmpty() ? "" : "active";
+    String menuInstructores = activeInstructores.isEmpty() ? "" : "active";
+    String menuClases = activeClases.isEmpty() ? "" : "active";
+
 %>
 
 <!DOCTYPE html>
@@ -47,12 +64,12 @@
         </div>
         
         <div class="sidebar-menu">
-            <a href="#" class="active" onclick="cambiarVista('estadisticas', this)">
-                <i class="fa fa-bar-chart"></i> Estadísticas
-            </a>
-            <a href="#" onclick="cambiarVista('usuarios', this)">
-                <i class="fa fa-users"></i> Usuarios
-            </a>
+        <a href="#" class="<%= menuEstadisticas %>" onclick="cambiarVista('estadisticas', this)">
+        <i class="fa fa-bar-chart"></i> Estadísticas
+    </a>
+    <a href="#" class="<%= menuUsuarios %>" onclick="cambiarVista('usuarios', this)">
+        <i class="fa fa-users"></i> Usuarios
+    </a>
             <a href="#" onclick="cambiarVista('instructores', this)">
                 <i class="fa fa-graduation-cap"></i> Instructores
             </a>
@@ -71,7 +88,7 @@
     <div class="main-content">
         <button class="mobile-toggle" onclick="toggleMenu()"><i class="fa fa-bars"></i></button>
 
-        <div id="estadisticas" class="content-section active">
+        <div id="estadisticas" class="content-section <%= activeEstadisticas %>">
             <h2>Dashboard General</h2>
             <div class="row">
                 <div class="col-md-4 mb-3">
@@ -98,10 +115,13 @@
             </div>
         </div>
 
-        <div id="usuarios" class="content-section">
+        <div id="usuarios" class="content-section <%= activeUsuarios %>">
             <div class="card-dark">
-                <div class="card-header-flex">
-                    <h2>Gestión de Usuarios</h2>
+              <div class="card-header-flex">
+                    <h2><i class="fa fa-users"></i> Gestión de Usuarios</h2>
+                    <a href="registroClientes.jsp" target="_blank" class="btn-neon" style="text-decoration:none;">
+                        <i class="fa fa-plus"></i> Nuevo Usuario
+                    </a>
                 </div>
                 <div class="table-responsive">
                     <table id="tablaUsuarios" class="table table-bordered" style="width:100%">
@@ -123,10 +143,24 @@
                                 <td><%= cli.getTelefono() %></td>
                                 <td><%= cli.getClase() != null ? cli.getClase() : "-" %></td>
                                 <td><%= cli.getPlazo() != null ? cli.getPlazo() : "-" %></td>
-                                <td>
-                                    <button class="btn btn-sm btn-info" onclick="alert('Editar')"><i class="fa fa-pencil"></i></button>
-                                    <button class="btn btn-sm btn-danger" onclick="eliminarCliente(<%= cli.getId() %>)"><i class="fa fa-trash"></i></button>
-                                </td>
+                          <td>
+<button class="btn btn-sm btn-info" 
+        onclick="cargarDatosEditar(
+            '<%= cli.getId() %>', 
+            '<%= cli.getNombre() %>', 
+            '<%= cli.getEmail() %>', 
+            '<%= cli.getTelefono() %>', 
+            '<%= cli.getEdad() %>',  <%-- NUEVO CAMPO --%>
+            '<%= cli.getPlazo() %>'
+        )" 
+        title="Editar">
+    <i class="fa fa-pencil"></i>
+</button>
+    
+    <button class="btn btn-sm btn-danger" onclick="eliminarCliente(<%= cli.getId() %>)" title="Eliminar">
+        <i class="fa fa-trash"></i>
+    </button>
+</td>
                             </tr>
                             <% } } %>
                         </tbody>
@@ -190,7 +224,8 @@
 
     </div>
 
-    <script src="assets/js/jquery-2.1.0.min.js"></script>
+          
+  <script src="assets/js/jquery-2.1.0.min.js"></script>
     <script src="assets/js/popper.js"></script>
     <script src="assets/js/bootstrap.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -198,6 +233,34 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // 1. CARGAR DATOS EN EL MODAL (Edición)
+        function cargarDatosEditar(id, nombre, email, telefono, edad, planNombre) {
+            // Llenar campos simples
+            document.getElementById('edit_id').value = id;
+            document.getElementById('edit_nombre').value = nombre;
+            document.getElementById('edit_email').value = email;
+            document.getElementById('edit_telefono').value = telefono;
+            document.getElementById('edit_edad').value = edad;
+
+            // Limpiar campos de contraseña
+            document.getElementById('newPass').value = '';
+            document.getElementById('confirmPass').value = '';
+
+            // Seleccionar plan en el dropdown
+            let select = document.getElementById('edit_suscripcion');
+            if(select) {
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].text.toUpperCase().includes(planNombre.toUpperCase())) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            // Abrir el modal
+            $('#modalEditarUsuario').modal('show');
+        }
+
+        // 2. NAVEGACIÓN Y MENÚ MÓVIL
         function toggleMenu() {
             document.getElementById('sidebar').classList.toggle('active');
             document.querySelector('.overlay').classList.toggle('active');
@@ -211,10 +274,11 @@
             if(window.innerWidth < 992) toggleMenu();
         }
 
+        // 3. ELIMINAR CLIENTE
         function eliminarCliente(id) {
             Swal.fire({
-                title: '¿Eliminar?',
-                text: "No podrás revertir esto",
+                title: '¿Eliminar Usuario?',
+                text: "No podrás revertir esta acción",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#fb030a',
@@ -228,8 +292,51 @@
             })
         }
 
-        // DATATABLES EN ESPAÑOL (HARDCODED PARA QUE NO FALLE)
+        // ==========================================
+        //  ZONA SEGURA: $(document).ready
+        //  Todo lo que esté aquí espera a que el HTML cargue
+        // ==========================================
         $(document).ready(function() {
+            
+            // A. VALIDACIÓN DE CONTRASEÑAS (SOLUCIÓN DEL ERROR)
+            var formEditar = document.getElementById('formEditarCliente');
+            
+            if (formEditar) { // Solo si el formulario existe, agregamos el evento
+                formEditar.addEventListener('submit', function(event) {
+                    var pass1 = document.getElementById('newPass').value;
+                    var pass2 = document.getElementById('confirmPass').value;
+
+                    // Solo validamos si escribió algo
+                    if (pass1.length > 0) {
+                        if (pass1 !== pass2) {
+                            event.preventDefault(); // Detiene el envío
+                            Swal.fire({
+                                title: 'Error de Contraseña',
+                                text: 'Las contraseñas no coinciden.',
+                                icon: 'error',
+                                confirmButtonColor: '#fb030a',
+                                background: '#1e1e1e', color: '#fff'
+                            });
+                            return;
+                        }
+                        if (pass1.length < 4) {
+                            event.preventDefault();
+                            Swal.fire({
+                                title: 'Muy corta',
+                                text: 'La contraseña debe tener al menos 4 caracteres.',
+                                icon: 'warning',
+                                confirmButtonColor: '#fb030a',
+                                background: '#1e1e1e', color: '#fff'
+                            });
+                            return;
+                        }
+                    }
+                });
+            } else {
+                console.error("No se encontró el formulario 'formEditarCliente'. Revisa el ID en el HTML.");
+            }
+
+            // B. CONFIGURACIÓN DATATABLES (Español)
             var idiomaEsp = {
                 "sProcessing":     "Procesando...",
                 "sLengthMenu":     "Mostrar _MENU_ registros",
@@ -246,16 +353,130 @@
                     "sLast":     "Último",
                     "sNext":     "Siguiente",
                     "sPrevious": "Anterior"
-                },
-                "oAria": {
-                    "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
                 }
             };
 
             $('#tablaUsuarios').DataTable({ "language": idiomaEsp, "lengthChange": false, "pageLength": 8 });
             $('#tablaInstructores').DataTable({ "language": idiomaEsp, "lengthChange": false, "pageLength": 8 });
+
+            // C. ALERTAS DE URL (DETECTAR ÉXITO O ERROR AL RECARGAR)
+            const urlParams = new URLSearchParams(window.location.search);
+            const msg = urlParams.get('msg');
+            const error = urlParams.get('error');
+
+            if (msg === 'UsuarioActualizado') {
+                Swal.fire({
+                    title: '¡Actualizado!',
+                    text: 'Los datos del cliente se guardaron correctamente.',
+                    icon: 'success',
+                    confirmButtonColor: '#fb030a',
+                    background: '#1e1e1e', color: '#fff',
+                    timer: 3000
+                }).then(() => {
+                    window.history.replaceState(null, null, window.location.pathname + "?view=usuarios");
+                });
+            }
+
+            if (error === 'PasswordNoCoincide') {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Las contraseñas no coinciden.',
+                    icon: 'error',
+                    confirmButtonColor: '#fb030a',
+                    background: '#1e1e1e', color: '#fff'
+                });
+            }
+            
+            if (error === 'DatosIncompletos' || error === 'Server' || error === 'ErrorAlActualizar') {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudieron guardar los cambios.',
+                    icon: 'error',
+                    confirmButtonColor: '#fb030a',
+                    background: '#1e1e1e', color: '#fff'
+                });
+            }
         });
     </script>
+    
+    
+    
+    <div class="modal fade" id="modalEditarUsuario" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="background-color: #1e1e1e; border: 1px solid #333; color: #fff;">
+            <div class="modal-header" style="border-bottom: 1px solid #333;">
+                <h5 class="modal-title" style="font-weight: 700; color: #fff;">
+                    <i class="fa fa-pencil" style="color: #fb030a;"></i> Editar Cliente
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
+            <form action="EditarClienteServlet" method="POST" id="formEditarCliente">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="edit_id">
+
+                    <div class="form-row">
+                        <div class="form-group col-md-8">
+                            <label style="color: #bbb;">Nombre Completo</label>
+                            <input type="text" name="nombre" id="edit_nombre" class="form-control" required style="background:#252525; color:#fff; border:1px solid #444;">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label style="color: #bbb;">Edad</label>
+                            <input type="number" name="edad" id="edit_edad" class="form-control" required style="background:#252525; color:#fff; border:1px solid #444;">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label style="color: #bbb;">Email</label>
+                            <input type="email" name="email" id="edit_email" class="form-control" required style="background:#252525; color:#fff; border:1px solid #444;">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label style="color: #bbb;">Teléfono</label>
+                            <input type="text" name="telefono" id="edit_telefono" class="form-control" required style="background:#252525; color:#fff; border:1px solid #444;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="color: #bbb;">Plan (Suscripción)</label>
+                        <select name="idSuscripcion" id="edit_suscripcion" class="form-control" required style="background:#252525; color:#fff; border:1px solid #444;">
+                            <% if(listaSuscripciones != null) { 
+                                for(Modelo.Suscripcion s : listaSuscripciones) { %>
+                                    <option value="<%= s.getId() %>">
+                                        <%= s.getTipo().toUpperCase() %> - $<%= s.getPrecio() %>
+                                    </option>
+                            <%  } 
+                               } %>
+                        </select>
+                    </div>
+
+                <hr style="border-top: 1px solid #444;">
+<p style="color:#fb030a; font-size:0.9rem; margin-bottom:10px;">
+    <i class="fa fa-lock"></i> Seguridad (Opcional)
+</p>
+<div class="form-row">
+    <div class="form-group col-md-6">
+        <label style="color: #bbb; font-size: 0.8rem;">Nueva Contraseña</label>
+        <input type="password" name="newPassword" id="newPass" class="form-control" placeholder="Dejar vacío si no cambia" style="background:#252525; color:#fff; border:1px solid #444;">
+    </div>
+    <div class="form-group col-md-6">
+        <label style="color: #bbb; font-size: 0.8rem;">Confirmar Contraseña</label>
+        <input type="password" name="confirmPassword" id="confirmPass" class="form-control" placeholder="Repetir contraseña" style="background:#252525; color:#fff; border:1px solid #444;">
+    </div>
+</div>
+                </div>
+                
+                <div class="modal-footer" style="border-top: 1px solid #333;">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn" style="background-color: #fb030a; color: white;">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+    
+    
 </body>
 </html>

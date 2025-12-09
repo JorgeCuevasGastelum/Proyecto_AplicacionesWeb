@@ -78,6 +78,74 @@ public class ClienteDAO {
         return c;
     }
 
+    
+/**
+     * Actualiza cliente. Si 'password' tiene valor, lo actualiza. Si es null/vacío, lo ignora.
+     */
+    public boolean actualizarCliente(int id, String nombre, String email, String password, String telefono, int edad, int idNuevaSuscripcion) {
+        
+        // Construimos el SQL dinámicamente dependiendo si hay cambio de contraseña
+        String sqlCliente;
+        boolean cambiarPass = (password != null && !password.trim().isEmpty());
+
+        if (cambiarPass) {
+            sqlCliente = "UPDATE clientes SET nombre=?, email=?, password=?, telefono=?, edad=? WHERE id=?";
+        } else {
+            sqlCliente = "UPDATE clientes SET nombre=?, email=?, telefono=?, edad=? WHERE id=?";
+        }
+        
+        String sqlSus = "UPDATE suscripciones_cliente SET id_suscripcion=? WHERE id_cliente=? ORDER BY fecha_inicio DESC LIMIT 1";
+
+        Connection conn = null;
+        try {
+            conn = Conexion.getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Actualizar Datos Personales
+            try (PreparedStatement ps = conn.prepareStatement(sqlCliente)) {
+                int i = 1;
+                ps.setString(i++, nombre);
+                ps.setString(i++, email);
+                
+                if (cambiarPass) {
+                    ps.setString(i++, password); // Aquí iría un hash en un sistema real (MD5/SHA)
+                }
+                
+                ps.setString(i++, telefono);
+                ps.setInt(i++, edad);
+                ps.setInt(i++, id);
+                
+                ps.executeUpdate();
+            }
+
+            // 2. Actualizar Suscripción
+            try (PreparedStatement ps = conn.prepareStatement(sqlSus)) {
+                ps.setInt(1, idNuevaSuscripcion);
+                ps.setInt(2, id);
+                int filas = ps.executeUpdate();
+                
+                // Insertar si no existía (Misma lógica de antes)
+                if(filas == 0) {
+                    String sqlInsert = "INSERT INTO suscripciones_cliente (id_cliente, id_suscripcion, fecha_inicio, fecha_fin) VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY))";
+                    try(PreparedStatement psIn = conn.prepareStatement(sqlInsert)){
+                        psIn.setInt(1, id);
+                        psIn.setInt(2, idNuevaSuscripcion);
+                        psIn.executeUpdate();
+                    }
+                }
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            try { if (conn != null) conn.rollback(); } catch (Exception ex) {}
+            return false;
+        } finally {
+            try { if (conn != null) conn.close(); } catch (Exception e) {}
+        }
+    }
     // 3. NUEVO MÉTODO: OBTENER DATOS COMPLETOS PARA DASHBOARD
    // Método que usa AuthServlet para llenar el panel
     public Cliente obtenerDetallesCliente(int idCliente) {
