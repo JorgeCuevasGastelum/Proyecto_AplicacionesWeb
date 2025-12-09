@@ -51,16 +51,27 @@ public class ClienteRegistroServlet extends HttpServlet {
         cliente.setClase(clase);
         cliente.setPlazo(plazo);
 
-        ClienteDAO dao = new ClienteDAO();
+ClienteDAO dao = new ClienteDAO();
         boolean exito = dao.registrarCliente(cliente);
 
-if (exito) {
-    // CORRECCIÓN: Mandar al login único (login.jsp)
-    response.sendRedirect("login.jsp?registro=exito");
-} else {
-    // Si falla, lo regresamos al registro para que intente de nuevo
-    response.sendRedirect("registroClientes.jsp?duplicado=1");
-}
+        // Capturamos el origen (campo oculto del modal)
+        String origin = request.getParameter("origin");
+
+        if (exito) {
+            if ("admin".equals(origin)) {
+                // Si vino del panel, volvemos al panel
+                response.sendRedirect("AdminDashboardServlet?view=usuarios&msg=UsuarioCreado");
+            } else {
+                // Si vino del registro público, vamos al login
+                response.sendRedirect("login.jsp?registro=exito");
+            }
+        } else {
+            if ("admin".equals(origin)) {
+                response.sendRedirect("AdminDashboardServlet?view=usuarios&error=ErrorAlCrear");
+            } else {
+                response.sendRedirect("registroClientes.jsp?duplicado=1");
+            }
+        }
     }
 
     /**

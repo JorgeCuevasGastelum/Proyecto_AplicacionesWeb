@@ -119,9 +119,9 @@
             <div class="card-dark">
               <div class="card-header-flex">
                     <h2><i class="fa fa-users"></i> Gestión de Usuarios</h2>
-                    <a href="registroClientes.jsp" target="_blank" class="btn-neon" style="text-decoration:none;">
-                        <i class="fa fa-plus"></i> Nuevo Usuario
-                    </a>
+                <button class="btn-neon" data-toggle="modal" data-target="#modalNuevoUsuario">
+        <i class="fa fa-plus"></i> Nuevo Usuario
+    </button>
                 </div>
                 <div class="table-responsive">
                     <table id="tablaUsuarios" class="table table-bordered" style="width:100%">
@@ -225,7 +225,7 @@
     </div>
 
           
-  <script src="assets/js/jquery-2.1.0.min.js"></script>
+<script src="assets/js/jquery-2.1.0.min.js"></script>
     <script src="assets/js/popper.js"></script>
     <script src="assets/js/bootstrap.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -233,9 +233,12 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // 1. CARGAR DATOS EN EL MODAL (Edición)
+        // ==========================================
+        //  FUNCIONES GLOBALES (Fuera de document.ready)
+        // ==========================================
+
+        // 1. CARGAR DATOS EN EL MODAL DE EDICIÓN
         function cargarDatosEditar(id, nombre, email, telefono, edad, planNombre) {
-            // Llenar campos simples
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_nombre').value = nombre;
             document.getElementById('edit_email').value = email;
@@ -256,11 +259,10 @@
                     }
                 }
             }
-            // Abrir el modal
             $('#modalEditarUsuario').modal('show');
         }
 
-        // 2. NAVEGACIÓN Y MENÚ MÓVIL
+        // 2. CONTROL DEL MENÚ
         function toggleMenu() {
             document.getElementById('sidebar').classList.toggle('active');
             document.querySelector('.overlay').classList.toggle('active');
@@ -274,7 +276,7 @@
             if(window.innerWidth < 992) toggleMenu();
         }
 
-        // 3. ELIMINAR CLIENTE
+        // 3. ELIMINAR CLIENTE (SweetAlert)
         function eliminarCliente(id) {
             Swal.fire({
                 title: '¿Eliminar Usuario?',
@@ -293,50 +295,58 @@
         }
 
         // ==========================================
-        //  ZONA SEGURA: $(document).ready
-        //  Todo lo que esté aquí espera a que el HTML cargue
+        //  INICIALIZACIÓN Y EVENTOS (Al cargar página)
         // ==========================================
         $(document).ready(function() {
-            
-            // A. VALIDACIÓN DE CONTRASEÑAS (SOLUCIÓN DEL ERROR)
+
+            // A. VALIDACIÓN FORMULARIO EDITAR (Contraseña opcional)
             var formEditar = document.getElementById('formEditarCliente');
-            
-            if (formEditar) { // Solo si el formulario existe, agregamos el evento
+            if (formEditar) {
                 formEditar.addEventListener('submit', function(event) {
                     var pass1 = document.getElementById('newPass').value;
                     var pass2 = document.getElementById('confirmPass').value;
-
-                    // Solo validamos si escribió algo
-                    if (pass1.length > 0) {
+                    
+                    if (pass1.length > 0) { // Solo si escribió algo
                         if (pass1 !== pass2) {
-                            event.preventDefault(); // Detiene el envío
-                            Swal.fire({
-                                title: 'Error de Contraseña',
-                                text: 'Las contraseñas no coinciden.',
-                                icon: 'error',
-                                confirmButtonColor: '#fb030a',
-                                background: '#1e1e1e', color: '#fff'
-                            });
-                            return;
-                        }
-                        if (pass1.length < 4) {
                             event.preventDefault();
-                            Swal.fire({
-                                title: 'Muy corta',
-                                text: 'La contraseña debe tener al menos 4 caracteres.',
-                                icon: 'warning',
-                                confirmButtonColor: '#fb030a',
-                                background: '#1e1e1e', color: '#fff'
-                            });
-                            return;
+                            mostrarAlertaError('Las contraseñas no coinciden.');
+                        } else if (pass1.length < 4) {
+                            event.preventDefault();
+                            mostrarAlertaError('La contraseña es muy corta (mínimo 4).');
                         }
                     }
                 });
-            } else {
-                console.error("No se encontró el formulario 'formEditarCliente'. Revisa el ID en el HTML.");
             }
 
-            // B. CONFIGURACIÓN DATATABLES (Español)
+            // B. VALIDACIÓN FORMULARIO NUEVO (Contraseña obligatoria)
+            var formNuevo = document.getElementById('formNuevoCliente');
+            if (formNuevo) {
+                formNuevo.addEventListener('submit', function(event) {
+                    var p1 = document.getElementById('create_pass1').value;
+                    var p2 = document.getElementById('create_pass2').value;
+
+                    if (p1 !== p2) {
+                        event.preventDefault();
+                        mostrarAlertaError('Las contraseñas no coinciden.');
+                    } else if (p1.length < 4) {
+                        event.preventDefault();
+                        mostrarAlertaError('La contraseña es muy corta (mínimo 4).');
+                    }
+                });
+            }
+
+            // Función auxiliar para alertas de validación
+            function mostrarAlertaError(mensaje) {
+                Swal.fire({
+                    title: 'Error',
+                    text: mensaje,
+                    icon: 'error',
+                    confirmButtonColor: '#fb030a',
+                    background: '#1e1e1e', color: '#fff'
+                });
+            }
+
+            // C. DATATABLES EN ESPAÑOL
             var idiomaEsp = {
                 "sProcessing":     "Procesando...",
                 "sLengthMenu":     "Mostrar _MENU_ registros",
@@ -346,78 +356,48 @@
                 "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
                 "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
                 "sSearch":         "Buscar:",
-                "sInfoThousands":  ",",
                 "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst":    "Primero",
-                    "sLast":     "Último",
-                    "sNext":     "Siguiente",
-                    "sPrevious": "Anterior"
-                }
+                "oPaginate": { "sFirst": "Primero", "sLast": "Último", "sNext": "Siguiente", "sPrevious": "Anterior" }
             };
 
             $('#tablaUsuarios').DataTable({ "language": idiomaEsp, "lengthChange": false, "pageLength": 8 });
             $('#tablaInstructores').DataTable({ "language": idiomaEsp, "lengthChange": false, "pageLength": 8 });
 
-            // C. ALERTAS DE URL (DETECTAR ÉXITO O ERROR AL RECARGAR)
+            // D. ALERTAS POR URL (RESPUESTA DEL SERVLET)
             const urlParams = new URLSearchParams(window.location.search);
             const msg = urlParams.get('msg');
             const error = urlParams.get('error');
 
-            if (msg === 'UsuarioActualizado') {
+            if (msg) {
+                let titulo = '¡Éxito!';
+                let texto = 'Operación realizada correctamente.';
+
+                if (msg === 'UsuarioActualizado') texto = 'El usuario ha sido actualizado.';
+                if (msg === 'UsuarioCreado') texto = 'El nuevo usuario ha sido registrado.';
+                if (msg === 'UsuarioEliminado') texto = 'El usuario ha sido eliminado.';
+
                 Swal.fire({
-                    title: '¡Actualizado!',
-                    text: 'Los datos del cliente se guardaron correctamente.',
+                    title: titulo,
+                    text: texto,
                     icon: 'success',
                     confirmButtonColor: '#fb030a',
                     background: '#1e1e1e', color: '#fff',
                     timer: 3000
                 }).then(() => {
+                    // Limpiar URL manteniendo la vista
                     window.history.replaceState(null, null, window.location.pathname + "?view=usuarios");
                 });
             }
 
-            // ... (Después del if de UsuarioActualizado) ...
-
-            // CASO: ELIMINADO CON ÉXITO
-            if (msg === 'UsuarioEliminado') {
-                Swal.fire({
-                    title: '¡Eliminado!',
-                    text: 'El usuario ha sido borrado del sistema.',
-                    icon: 'success',
-                    confirmButtonColor: '#fb030a',
-                    background: '#1e1e1e', color: '#fff',
-                    timer: 3000
-                }).then(() => {
-                    // Limpiamos la URL
-                    window.history.replaceState(null, null, window.location.pathname + "?view=usuarios");
-                });
-            }
-
-            // CASO: ERROR AL ELIMINAR
-            if (error === 'NoEliminado' || error === 'IdInvalido') {
+            if (error) {
+                let texto = 'Ocurrió un error inesperado.';
+                if (error === 'PasswordNoCoincide') texto = 'Las contraseñas no coinciden.';
+                if (error === 'DatosIncompletos') texto = 'Faltan datos obligatorios.';
+                if (error === 'ErrorAlCrear') texto = 'No se pudo crear el usuario (quizás el correo ya existe).';
+                
                 Swal.fire({
                     title: 'Error',
-                    text: 'No se pudo eliminar el usuario. Intenta de nuevo.',
-                    icon: 'error',
-                    confirmButtonColor: '#fb030a',
-                    background: '#1e1e1e', color: '#fff'
-                });
-            }
-            if (error === 'PasswordNoCoincide') {
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Las contraseñas no coinciden.',
-                    icon: 'error',
-                    confirmButtonColor: '#fb030a',
-                    background: '#1e1e1e', color: '#fff'
-                });
-            }
-            
-            if (error === 'DatosIncompletos' || error === 'Server' || error === 'ErrorAlActualizar') {
-                Swal.fire({
-                    title: 'Error',
-                    text: 'No se pudieron guardar los cambios.',
+                    text: texto,
                     icon: 'error',
                     confirmButtonColor: '#fb030a',
                     background: '#1e1e1e', color: '#fff'
@@ -504,6 +484,98 @@
     </div>
 </div>
     
+                        
+                        <div class="modal fade" id="modalNuevoUsuario" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content" style="background-color: #1e1e1e; border: 1px solid #333; color: #fff;">
+            <div class="modal-header" style="border-bottom: 1px solid #333;">
+                <h5 class="modal-title" style="font-weight: 700;">
+                    <i class="fa fa-user-plus" style="color: #fb030a;"></i> Nuevo Cliente
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
+            <form action="registrarCliente" method="POST" id="formNuevoCliente">
+                <input type="hidden" name="origin" value="admin">
+
+                <div class="modal-body">
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label style="color: #bbb;">Nombre Completo</label>
+                            <input type="text" name="nombre" class="form-control" placeholder="Ej: Ana López" required style="background:#252525; color:#fff; border:1px solid #444;">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label style="color: #bbb;">Edad</label>
+                            <input type="number" name="edad" class="form-control" placeholder="25" required style="background:#252525; color:#fff; border:1px solid #444;">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label style="color: #bbb;">Teléfono</label>
+                            <input type="text" name="telefono" class="form-control" placeholder="555-0000" required style="background:#252525; color:#fff; border:1px solid #444;">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label style="color: #bbb;">Correo Electrónico</label>
+                            <input type="email" name="email" class="form-control" required style="background:#252525; color:#fff; border:1px solid #444;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label style="color: #bbb;">Contraseña</label>
+                            <input type="password" name="password" id="create_pass1" class="form-control" required style="background:#252525; color:#fff; border:1px solid #444;">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label style="color: #bbb;">Confirmar Contraseña</label>
+                            <input type="password" id="create_pass2" class="form-control" required style="background:#252525; color:#fff; border:1px solid #444;">
+                        </div>
+                    </div>
+
+                    <hr style="border-top: 1px solid #444;">
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label style="color: #bbb;">Clase de Interés</label>
+                            <select name="clase" class="form-control" style="background:#252525; color:#fff; border:1px solid #444;">
+                                <option value="sin-clase">Ninguna</option>
+                                <% if(listaClases != null) { 
+                                    for(ClaseGym c : listaClases) { %>
+                                        <option value="<%= c.getNombre() %>"><%= c.getNombre() %></option>
+                                <%  } } %>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label style="color: #bbb;">Plan (Suscripción)</label>
+                            <select name="plazo" class="form-control" required style="background:#252525; color:#fff; border:1px solid #444;">
+                                <option value="pendiente">Sin Plan (Pendiente)</option>
+                                <% if(listaSuscripciones != null) { 
+                                    for(Modelo.Suscripcion s : listaSuscripciones) { %>
+                                        <option value="<%= s.getTipo() %>">
+                                            <%= s.getTipo().toUpperCase() %> - $<%= s.getPrecio() %>
+                                        </option>
+                                <%  } } %>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="color: #bbb;">Objetivo Principal</label>
+                        <textarea name="objetivos" rows="2" class="form-control" placeholder="Ej: Bajar peso..." style="background:#252525; color:#fff; border:1px solid #444;"></textarea>
+                    </div>
+                </div>
+                
+                <div class="modal-footer" style="border-top: 1px solid #333;">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn" style="background-color: #fb030a; color: white;">Crear Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
     
 </body>
 </html>
