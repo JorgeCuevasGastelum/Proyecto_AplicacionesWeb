@@ -1,103 +1,262 @@
+/* === PANEL ADMIN DARK MODE (Fixed) === */
 body {
-    background: #f5f5f5;
+    background-color: #121212;
+    color: #e0e0e0;
     font-family: 'Poppins', sans-serif;
-}
-header.header-area {
-    background: rgba(0,0,0,0.85);
-}
-header .main-nav .nav li a, header .main-nav .nav li.main-button a {
-    color: #fff;
-}
-#content {
-    padding: 100px 30px 30px 30px;
-}
-h2, h3, h5 {
-    color: #222 !important;
+    margin: 0;
+    overflow-x: hidden;
 }
 
-.dashboard-card, .class-card, .instructor-card {
-    background: #fff;
+/* === SIDEBAR (SOLUCIÓN CORTE DE BOTÓN) === */
+.sidebar {
+    height: 100vh; /* Altura total de la ventana */
+    width: 260px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #1a1a1a;
+    border-right: 1px solid #333;
+    z-index: 1000;
+    transition: 0.3s;
+    /* Flexbox vertical para distribuir espacio */
+    display: flex;
+    flex-direction: column; 
+}
+
+/* 1. Logo (Arriba) */
+.logo-box {
+    flex-shrink: 0; /* No se encoge */
+    padding: 30px 20px;
+    text-align: center;
+    border-bottom: 1px solid #333;
+}
+.logo-box h3 { color: #fff; font-weight: 800; font-size: 1.5rem; margin: 0; letter-spacing: 1px; }
+.logo-box span { color: #fb030a; }
+
+/* 2. Menú (Centro - Ocupa el espacio sobrante) */
+.sidebar-menu {
+    flex-grow: 1; /* Empuja el footer hacia abajo */
+    overflow-y: auto; /* Scroll solo si el menú es muy largo */
+    padding-top: 20px;
+}
+
+/* Estilos de los enlaces */
+.sidebar a {
+    padding: 15px 25px;
+    text-decoration: none;
+    font-size: 0.95rem;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    transition: 0.3s;
+    border-left: 4px solid transparent;
+}
+.sidebar a i { width: 25px; text-align: center; margin-right: 10px; color: #fb030a; font-size: 1.2rem; }
+.sidebar a:hover, .sidebar a.active {
+    background-color: #252525; color: #fff; border-left-color: #fb030a;
+}
+
+/* 3. Botón Salir (Abajo - Fijo) */
+.logout-box {
+    flex-shrink: 0; /* No se encoge */
     padding: 20px;
-    margin-bottom: 30px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-top: 1px solid #333;
+    background-color: #1a1a1a; /* Tapa el scroll si lo hubiera */
+}
+.btn-logout {
+    display: block; width: 100%; padding: 10px; text-align: center;
+    border: 1px solid #fb030a; color: #fb030a !important;
+    border-radius: 5px; transition: 0.3s; font-weight: 600; text-decoration: none;
+}
+.btn-logout:hover { background-color: #fb030a; color: #fff !important; }
+
+/* === CONTENIDO PRINCIPAL === */
+.main-content {
+    margin-left: 260px;
+    padding: 30px;
+    width: calc(100% - 260px);
+    transition: 0.3s;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
+/* === TARJETAS === */
+.content-section { display: none; animation: fadeIn 0.4s ease; }
+.content-section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.card-dark {
+    background-color: #1e1e1e;
+    border-radius: 12px;
+    padding: 25px;
+    border: 1px solid #333;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    margin-bottom: 30px;
 }
-table th, table td {
-    padding: 10px;
-    text-align: left;
+
+.card-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+h2 { color: #fff; font-weight: 700; font-size: 1.8rem; margin: 0; }
+
+/* === DATATABLES DARK MODE (FIX PAGINACIÓN BLANCA) === */
+
+/* Fondo tabla */
+table.dataTable { background-color: #1e1e1e !important; color: #ddd !important; border-bottom: 1px solid #333 !important; }
+table.dataTable th { background-color: #252525 !important; color: #fb030a !important; border-bottom: 1px solid #444 !important; }
+table.dataTable td { border-bottom: 1px solid #333 !important; }
+table.dataTable tbody tr:hover { background-color: #333 !important; }
+
+/* Textos generales (Buscar, mostrar, info) */
+.dataTables_wrapper, .dataTables_info, .dataTables_filter label, .dataTables_length label {
+    color: #bbb !important;
+}
+
+/* Inputs (Buscador y Selector) */
+.dataTables_filter input, .dataTables_length select {
+    background-color: #333 !important;
+    border: 1px solid #555 !important;
+    color: #fff !important;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+/* === PAGINACIÓN (EL PROBLEMA DE LOS BOTONES BLANCOS) === */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: #fff !important;          /* Texto blanco */
+    background: #252525 !important;  /* Fondo gris oscuro */
+    border: 1px solid #444 !important; /* Borde gris */
+    margin-left: 5px;
+    border-radius: 4px;
+}
+
+/* Hover botones paginación */
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #fb030a !important;  /* Fondo Rojo al pasar mouse */
+    color: #fff !important;
+    border: 1px solid #fb030a !important;
+}
+
+/* Botón activo (Página actual) */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: #fb030a !important;
+    color: #fff !important;
+    border: 1px solid #fb030a !important;
+}
+
+/* Botón deshabilitado (Prev cuando estás en la 1) */
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled, 
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+    background: #1a1a1a !important;
+    color: #555 !important;
+    border: 1px solid #333 !important;
+    cursor: default;
+}
+
+/* === ESTADÍSTICAS === */
+.stat-card {
+    background: #252525; padding: 25px; border-radius: 12px; text-align: center;
+    border-bottom: 4px solid #fb030a; transition: 0.3s;
+}
+.stat-card:hover { transform: translateY(-5px); background: #2a2a2a; }
+.stat-number { font-size: 2.5rem; font-weight: 800; color: #fff; margin: 10px 0; }
+.stat-label { color: #aaa; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+
+/* === BOTONES === */
+.btn-neon { background-color: #fb030a; color: #fff; border: none; padding: 8px 20px; border-radius: 50px; font-weight: 600; cursor: pointer; }
+.btn-neon:hover { background-color: #d90206; color: #fff; }
+.mobile-toggle { display: none; font-size: 1.5rem; background: none; border: none; color: #fb030a; cursor: pointer; margin-bottom: 20px; }
+
+/* Responsive */
+@media (max-width: 992px) {
+    .sidebar { left: -260px; }
+    .sidebar.active { left: 0; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+    .main-content { margin-left: 0; width: 100%; }
+    .mobile-toggle { display: block; }
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; }
+    .overlay.active { display: block; }
+}
+
+/* === DATATABLES PERSONALIZADO (DARK MODE TOTAL) === */
+
+/* 1. Fondo de la tabla y filas */
+table.dataTable {
+    border-collapse: collapse !important;
+    background-color: #1e1e1e !important;
+    color: #ddd !important;
+    width: 100% !important;
+    border-bottom: 1px solid #333 !important;
+}
+
+/* 2. Cabecera (Header) */
+table.dataTable thead th {
+    background-color: #252525 !important;
+    color: #fb030a !important; /* Rojo neón */
+    border-bottom: 2px solid #444 !important;
+    border-top: none !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    padding: 15px !important;
+}
+
+/* 3. Celdas (Body) */
+table.dataTable tbody td {
+    border-bottom: 1px solid #333 !important;
+    border-top: 1px solid #333 !important;
+    padding: 12px 15px !important;
     vertical-align: middle;
 }
-table thead {
-    background: #222;
-    color: #fff;
+
+/* 4. Hover en filas */
+table.dataTable tbody tr:hover {
+    background-color: #2a2a2a !important; /* Ligeramente más claro al pasar mouse */
 }
 
-#sidebar {
-    background: #222;
-    color: #fff;
-    padding: 20px;
-    min-height: 100vh;
+/* 5. Inputs de búsqueda y selectores (Show entries) */
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+    background-color: #121212 !important;
+    border: 1px solid #444 !important;
+    color: #fff !important;
+    border-radius: 5px;
+    padding: 5px 10px;
 }
-#sidebar h5 {
-    color: #fff;
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #fb030a !important;
+    outline: none;
 }
-#sidebar a {
-    color: #fff;
+/* Textos generales (Showing 1 to 10...) */
+.dataTables_wrapper label, .dataTables_info { color: #bbb !important; }
+
+
+/* === 6. PAGINACIÓN (CORRECCIÓN DE BOOTSTRAP .page-link) === */
+
+/* Estado Normal (Botones numéricos y Prev/Next) */
+.dataTables_wrapper .page-item .page-link {
+    color: #ebebeb !important;
+    background-color: #1e1e1e !important; /* Tu color oscuro */
+    border: 1px solid #333 !important;    /* Cambié el borde a oscuro para que combine */
+    border-radius: 0 !important;
+    margin: 0 2px;
+}
+
+/* Hover (Pasar mouse) */
+.dataTables_wrapper .page-item .page-link:hover {
+    background-color: #333 !important;
+    color: #fb030a !important;
+    border-color: #fb030a !important;
     text-decoration: none;
-    display: block;
-    margin: 8px 0;
-}
-#sidebar a:hover {
-    text-decoration: underline;
 }
 
-.progress {
-    height: 20px;
-    border-radius: 10px;
-    background-color: #eee;
-    overflow: hidden;
-}
-.progress-bar {
-    height: 100%;
-    line-height: 20px;
-    color: #fff;
+/* Activo (Página actual) */
+.dataTables_wrapper .page-item.active .page-link {
+    background-color: #fb030a !important;
+    border-color: #fb030a !important;
+    color: #fff !important;
     font-weight: bold;
-    width: 0;
-    transition: width 1.2s ease-in-out;
-}
-.progress-bar-yoga {
-    background-color: #28a745;
-}
-.progress-bar-body {
-    background-color: #007bff;
-}
-.progress-bar-avanzado {
-    background-color: #ffc107;
-}
-.progress-bar-musculacion {
-    background-color: #dc3545;
 }
 
-.stat-card {
-    background: #f4f6f9;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,.1);
-}
-
-.stat-number {
-    font-size: 28px;
-    font-weight: bold;
-    color: #28a745;
-}
-
-
-.btn-crud {
-    margin-right: 5px;
+/* Deshabilitado (Prev cuando estás en la pág 1) */
+.dataTables_wrapper .page-item.disabled .page-link {
+    background-color: #121212 !important;
+    color: #444 !important;
+    border-color: #222 !important;
 }
