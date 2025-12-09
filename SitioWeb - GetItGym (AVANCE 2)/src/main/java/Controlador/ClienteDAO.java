@@ -13,19 +13,24 @@ import java.util.List;
 public class ClienteDAO {
 
     public boolean registrarCliente(Cliente c) {
-        String sqlCliente = "INSERT INTO clientes(nombre,email,telefono,edad,objetivos) VALUES(?,?,?,?,?)";
+ // CORRECCIÓN 1: Agregamos la columna 'password' y un ? extra (ahora son 6)
+        String sqlCliente = "INSERT INTO clientes(nombre, email, password, telefono, edad, objetivos) VALUES(?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = Conexion.getConnection(); PreparedStatement psCliente = conn.prepareStatement(sqlCliente, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = Conexion.getConnection(); 
+             PreparedStatement psCliente = conn.prepareStatement(sqlCliente, Statement.RETURN_GENERATED_KEYS)) {
 
             if (existeCliente(conn, c)) {
-                return false; // señalamos error por duplicado
+                return false; 
             }
 
+            // CORRECCIÓN 2: Asegurar que el orden coincida con el SQL de arriba
             psCliente.setString(1, c.getNombre());
             psCliente.setString(2, c.getEmail());
-            psCliente.setString(3, c.getTelefono());
-            psCliente.setInt(4, c.getEdad());
-            psCliente.setString(5, c.getObjetivos());
+            psCliente.setString(3, c.getPassword()); // El 3er ? es password
+            psCliente.setString(4, c.getTelefono()); // El 4to ? es telefono
+            psCliente.setInt(5, c.getEdad());        // El 5to ? es edad
+            psCliente.setString(6, c.getObjetivos());// El 6to ? es objetivos
+            
             psCliente.executeUpdate();
 
             ResultSet rs = psCliente.getGeneratedKeys();
@@ -35,17 +40,91 @@ public class ClienteDAO {
 
             int idCliente = rs.getInt(1);
 
+            // Estos métodos ya deben manejar sus propios INSERTs
             registrarClaseCliente(conn, idCliente, c.getClase());
             registrarSuscripcionCliente(conn, idCliente, c.getPlazo());
 
             return true;
 
         } catch (Exception e) {
+            e.printStackTrace(); // Imprime el error completo en la consola
             System.out.println("Error registrando cliente: " + e.getMessage());
             return false;
         }
     }
+    
+    // 2. NUEVO MÉTODO: LOGIN DE CLIENTE
+    public Cliente loginCliente(String email, String password) {
+        Cliente c = null;
+        String sql = "SELECT * FROM clientes WHERE email = ? AND password = ?";
+        
+        try (Connection conn = Conexion.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, email);
+            ps.setString(2, password);
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                c = new Cliente();
+                c.setId(rs.getInt("id"));
+                c.setNombre(rs.getString("nombre"));
+                c.setEmail(rs.getString("email"));
+                c.setEdad(rs.getInt("edad"));
+                c.setTelefono(rs.getString("telefono"));
+                c.setObjetivos(rs.getString("objetivos"));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return c;
+    }
 
+    // 3. NUEVO MÉTODO: OBTENER DATOS COMPLETOS PARA DASHBOARD
+   // Método que usa AuthServlet para llenar el panel
+    public Cliente obtenerDetallesCliente(int idCliente) {
+        Cliente c = null;
+        
+        // Hacemos JOIN con 'suscripciones_cliente' para sacar la fecha_fin real
+        String sql = "SELECT c.*, " +
+                     "COALESCE(cl.nombre, 'Sin clase') as nombre_clase, " +
+                     "COALESCE(s.tipo, 'Sin plan') as tipo_suscripcion, " +
+                     "sc.fecha_fin " +  // <--- Aquí pedimos la fecha a la base de datos
+                     "FROM clientes c " +
+                     "LEFT JOIN clases_cliente cc ON c.id = cc.id_cliente " +
+                     "LEFT JOIN clases cl ON cc.id_clase = cl.id " +
+                     "LEFT JOIN suscripciones_cliente sc ON c.id = sc.id_cliente " +
+                     "LEFT JOIN suscripciones s ON sc.id_suscripcion = s.id " +
+                     "WHERE c.id = ? " +
+                     "ORDER BY sc.fecha_inicio DESC LIMIT 1";
+
+        try (Connection conn = Conexion.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, idCliente);
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                c = new Cliente();
+                // Llenamos datos básicos
+                c.setId(rs.getInt("id"));
+                c.setNombre(rs.getString("nombre"));
+                c.setEmail(rs.getString("email"));
+                c.setTelefono(rs.getString("telefono"));
+                c.setEdad(rs.getInt("edad"));
+                c.setObjetivos(rs.getString("objetivos"));
+                
+                // Llenamos los auxiliares
+                c.setClase(rs.getString("nombre_clase"));
+                c.setPlazo(rs.getString("tipo_suscripcion"));
+                
+                // AQUÍ GUARDAMOS LA FECHA EN EL OBJETO
+                // Si es nula, guardamos un texto vacío o null
+                c.setFechaFin(rs.getString("fecha_fin")); 
+            }
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+        }
+        return c;
+    }
     private void registrarClaseCliente(Connection conn, int idCliente, String clase) throws Exception {
         if (clase.equals("sin-clase")) {
             return;
@@ -102,7 +181,7 @@ public class ClienteDAO {
                 break;
             case "anual":
                 idSus = 5;
-                break;
+                break;          
             default:
                 idSus = 1;
                 break;

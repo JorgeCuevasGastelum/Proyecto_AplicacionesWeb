@@ -16,8 +16,13 @@
      ============================ --%>
 <%
     HttpSession ses = request.getSession(false);
-    if (ses == null || ses.getAttribute("admin") == null) {
-        response.sendRedirect("loginPanelAdmin.jsp");
+    
+    // 1. Recuperamos el ROL que guardó el AuthServlet
+    String rol = (ses != null) ? (String) ses.getAttribute("rol") : null;
+
+    // 2. Validamos: Si no hay sesión, o el rol no es ADMIN, expulsamos al usuario
+    if (ses == null || rol == null || !rol.equals("ADMIN")) {
+        response.sendRedirect("login.jsp"); // <--- Mandar al login único
         return;
     }
 
@@ -26,14 +31,15 @@
     List<ClaseGym> listaClases = catDao.obtenerClases();
     List<Suscripcion> listaSuscripciones = catDao.obtenerSuscripciones();
 
-    // Listas recibidas desde el servlet (si las envía)
+    // Listas recibidas desde el servlet
     List<Cliente> misClientes = (List<Cliente>) request.getAttribute("misClientes");
     List<Instructor> listaInstructores = (List<Instructor>) request.getAttribute("listaInstructores");
 
-    // Estadísticas (si vienen del servlet); si no, se muestran vacías/0
+    // Estadísticas
     Object totalClientesObj = request.getAttribute("totalClientes");
     Object totalClasesObj = request.getAttribute("totalClases");
     Object suscripcionTopObj = request.getAttribute("suscripcionTop");
+    
     String totalClientes = totalClientesObj != null ? totalClientesObj.toString() : "0";
     String totalClases = totalClasesObj != null ? totalClasesObj.toString() : (listaClases != null ? String.valueOf(listaClases.size()) : "0");
     String suscripcionTop = suscripcionTopObj != null ? suscripcionTopObj.toString() : "-";

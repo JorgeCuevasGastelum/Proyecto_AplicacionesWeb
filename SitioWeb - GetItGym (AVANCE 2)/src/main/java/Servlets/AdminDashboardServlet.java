@@ -5,13 +5,10 @@
 package Servlets;
 
 import Controlador.CatalogosDAO;
-import javax.servlet.annotation.WebServlet;
-import Modelo.ClaseGym;
 import Controlador.ClienteDAO;
 import Controlador.InstructorDAO;
 import Modelo.Cliente;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -31,26 +28,35 @@ public class AdminDashboardServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Verificar sesión (Seguridad)
+  // 1. Verificar sesión (Seguridad)
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("admin") == null) {
-            response.sendRedirect("loginPanelAdmin.jsp");
+        
+        // CORRECCIÓN: Obtenemos el rol guardado
+        String rol = (session != null) ? (String) session.getAttribute("rol") : null;
+
+        // Validamos:
+        // 1. Que la sesión exista
+        // 2. Que el rol no sea nulo
+        // 3. Que el rol sea explícitamente "ADMIN"
+        if (session == null || rol == null || !rol.equals("ADMIN")) {
+            response.sendRedirect("login.jsp"); 
             return;
         }
 
-        // 2. Obtener datos de la BD
+        // 2. Obtener datos de la BD (Igual que antes)
         ClienteDAO clienteDao = new ClienteDAO();
         List<Cliente> listaClientes = clienteDao.listarClientes();
+        
         CatalogosDAO catDao = new CatalogosDAO();
         request.setAttribute("totalClientes", catDao.obtenerTotalClientes());
         request.setAttribute("totalClases", catDao.obtenerTotalClases());
         request.setAttribute("suscripcionTop", catDao.obtenerSuscripcionMasUsada());
+        
         InstructorDAO instructorDAO = new InstructorDAO();
         request.setAttribute("listaInstructores", instructorDAO.listarInstructores());
 
         // 3. Pasarlos al JSP
         request.setAttribute("misClientes", listaClientes);
         request.getRequestDispatcher("panelAdministradores.jsp").forward(request, response);
-
     }
 }

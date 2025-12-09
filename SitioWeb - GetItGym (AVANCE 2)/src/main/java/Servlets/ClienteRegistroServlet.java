@@ -29,10 +29,14 @@ public class ClienteRegistroServlet extends HttpServlet {
 
         String nombre = request.getParameter("nombre");
         String email = request.getParameter("email");
+        String password = request.getParameter("password"); // <-- Capturar
         String telefono = request.getParameter("telefono");
         String edadStr = request.getParameter("edad");
         String clase = request.getParameter("clase");
         String plazo = request.getParameter("plazo");
+        if (plazo == null) {
+    plazo = "pendiente"; 
+}
         String objetivos = request.getParameter("objetivos");
 
         int edad = Integer.parseInt(edadStr);
@@ -40,6 +44,7 @@ public class ClienteRegistroServlet extends HttpServlet {
         Cliente cliente = new Cliente();
         cliente.setNombre(nombre);
         cliente.setEmail(email);
+        cliente.setPassword(password);
         cliente.setTelefono(telefono);
         cliente.setEdad(edad);
         cliente.setObjetivos(objetivos);
@@ -49,11 +54,13 @@ public class ClienteRegistroServlet extends HttpServlet {
         ClienteDAO dao = new ClienteDAO();
         boolean exito = dao.registrarCliente(cliente);
 
-        if (exito) {
-            response.sendRedirect("registroClientes.jsp?exito=1");
-        } else {
-            response.sendRedirect("registroClientes.jsp?duplicado=1");
-        }
+if (exito) {
+    // CORRECCIÓN: Mandar al login único (login.jsp)
+    response.sendRedirect("login.jsp?registro=exito");
+} else {
+    // Si falla, lo regresamos al registro para que intente de nuevo
+    response.sendRedirect("registroClientes.jsp?duplicado=1");
+}
     }
 
     /**

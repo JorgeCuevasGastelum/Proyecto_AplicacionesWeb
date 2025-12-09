@@ -184,3 +184,9 @@ INSERT INTO instructores_clases(id_instructor,id_clase) VALUES
 (3,3), -- Carlos → Yoga
 (4,5); -- Laura → Crossfit
 
+
+-- Agregamos la columna password
+ALTER TABLE clientes ADD COLUMN password VARCHAR(200) NOT NULL AFTER email;
+
+-- (Opcional) Ponemos una contraseña por defecto a los usuarios viejos para que no den error
+UPDATE clientes SET password = '12345' WHERE password = '';

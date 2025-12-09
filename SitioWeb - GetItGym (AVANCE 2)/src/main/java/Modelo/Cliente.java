@@ -7,11 +7,16 @@ public class Cliente {
     private String nombre;
     private String email;
     private String telefono;
+    private String password; // <--- NUEVO
     private int edad;
     private String clase;
     private String plazo;
     private String objetivos;
 
+    private String fechaFin;
+    
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
     // Getters y setters
     public int getId() {
         return id;
@@ -76,4 +81,8 @@ public class Cliente {
     public void setObjetivos(String objetivos) {
         this.objetivos = objetivos;
     }
+    
+    // ¡AGREGA ESTO PARA QUE SE QUITE EL ERROR 500!
+    public String getFechaFin() { return fechaFin; }
+    public void setFechaFin(String fechaFin) { this.fechaFin = fechaFin; }
 }
