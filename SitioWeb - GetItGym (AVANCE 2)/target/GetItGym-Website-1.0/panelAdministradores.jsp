@@ -175,7 +175,10 @@
                 <div class="card-dark">
                     <div class="card-header-flex">
                         <h2>Instructores</h2>
-                        <button class="btn-neon" onclick="alert('Modal Nuevo')"><i class="fa fa-plus"></i> Nuevo</button>
+                        <button class="btn-neon" data-toggle="modal" data-target="#modalNuevoInstructor">
+                            <i class="fa fa-plus"></i> Nuevo
+                        </button>
+
                     </div>
                     <div class="table-responsive">
                         <table id="tablaInstructores" class="table table-bordered" style="width:100%">
@@ -750,8 +753,8 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    
-                    
+
+
 
                     <form action="EditarInstructorServlet" method="POST" id="formEditarInstructorConClases">
                         <div class="modal-body">
@@ -814,6 +817,104 @@
             </div>
         </div>
 
+        <div class="modal fade" id="modalNuevoInstructor" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-content" style="background-color: #1e1e1e; border: 1px solid #333; color: #fff;">
+                    <div class="modal-header" style="border-bottom: 1px solid #333;">
+                        <h5 class="modal-title" style="font-weight: 700;">
+                            <i class="fa fa-user-plus" style="color: #fb030a;"></i> Nuevo Instructor
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: #fff;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
+                    <form action="InstructorServlet" method="POST" id="formNuevoInstructor">
+                        <input type="hidden" name="accion" value="registrar">
+
+                        <input type="hidden" name="clasesSeleccionadas" id="nuevo_instructor_clases_hidden" value="">
+
+                        <div class="modal-body">
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label style="color: #bbb;">Nombre Completo</label>
+                                    <input type="text" name="nombre" class="form-control" required style="background:#252525; color:#fff; border:1px solid #444;">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label style="color: #bbb;">Email</label>
+                                    <input type="email" name="email" class="form-control" style="background:#252525; color:#fff; border:1px solid #444;">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label style="color: #bbb;">Teléfono</label>
+                                    <input type="text" name="telefono" class="form-control" style="background:#252525; color:#fff; border:1px solid #444;">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label style="color: #bbb;">Especialidad</label>
+                                    <input type="text" name="especialidad" class="form-control" style="background:#252525; color:#fff; border:1px solid #444;">
+                                </div>
+                            </div>
+
+                            <hr style="border-top: 1px solid #444;">
+                            <p style="color:#fb030a; font-size:0.9rem; margin-bottom:10px;">
+                                <i class="fa fa-list"></i> Asignar Clases
+                            </p>
+
+                            <div class="form-group" style="max-height:200px; overflow:auto;">
+                                <% if (listaClases != null) {
+                                        for (Modelo.ClaseGym c : listaClases) {%>
+                                <div class="form-check">
+                                    <input class="form-check-input chk-nuevo-instructor" type="checkbox" 
+                                           value="<%= c.getId()%>" id="new_clase_chk_<%= c.getId()%>">
+                                    <label class="form-check-label" for="new_clase_chk_<%= c.getId()%>" style="color:#ddd;">
+                                        <%= c.getNombre()%>
+                                    </label>
+                                </div>
+                                <%   }
+                                    }%>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer" style="border-top: 1px solid #333;">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn" id="btnGuardarInstructor" style="background-color: #fb030a; color: white;">Guardar Instructor</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <script>
+            // ==========================================
+//  GUARDAR NUEVO INSTRUCTOR (LÓGICA MANUAL)
+// ==========================================
+            $('#btnGuardarInstructor').click(function (e) {
+                // 1. Prevenir cualquier comportamiento por defecto
+                e.preventDefault();
+
+                // 2. Buscar checkboxes marcados usando la clase específica
+                let idsSeleccionados = [];
+                $('.chk-nuevo-instructor:checked').each(function () {
+                    idsSeleccionados.push($(this).val());
+                });
+
+                // 3. Convertir Array a String (ej: "1,5")
+                let stringFinal = idsSeleccionados.join(',');
+
+                // 4. METER EL STRING EN EL INPUT HIDDEN
+                $('#nuevo_instructor_clases_hidden').val(stringFinal);
+
+                // DEBUG: Muestra esto en la consola del navegador (F12) antes de enviar
+                console.log("Datos a enviar -> Nombre: " + $('input[name="nombre"]').val());
+                console.log("Datos a enviar -> Clases Hidden: " + stringFinal);
+
+                // 5. ENVIAR FORMULARIO MANUALMENTE
+                $('#formNuevoInstructor').submit();
+            });
+        </script>
 
     </body>
 </html>

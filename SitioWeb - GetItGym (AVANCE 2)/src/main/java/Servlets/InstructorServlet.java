@@ -83,15 +83,19 @@ public class InstructorServlet extends HttpServlet {
                 .forward(request, response);
     }
 
-    /* ===================== REGISTRAR ===================== */
     private void registrar(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
+        request.setCharacterEncoding("UTF-8");
+
+        // 1. Recoger datos del instructor
         String nombre = request.getParameter("nombre");
         String email = request.getParameter("email");
         String telefono = request.getParameter("telefono");
         String especialidad = request.getParameter("especialidad");
-        String[] clasesIds = request.getParameterValues("clasesIds");
+
+        // 2. Recoger el String de las clases del input hidden
+        String clasesStr = request.getParameter("clasesSeleccionadas"); // "1,5,2"
 
         Instructor instructor = new Instructor();
         instructor.setNombre(nombre);
@@ -99,17 +103,42 @@ public class InstructorServlet extends HttpServlet {
         instructor.setTelefono(telefono);
         instructor.setEspecialidad(especialidad);
 
-        // Guardar instructor
-        int idInstructor = instructorDAO.insertar(instructor);
+        // 3. INSERTAR Y OBTENER EL ID (Paso Crítico)
+        // Tu método insertar devuelve el ID generado (ej: 15)
+        int idNuevoInstructor = instructorDAO.insertar(instructor);
 
-        // Guardar relación instructor-clase
-        if (clasesIds != null) {
-            for (String idClase : clasesIds) {
-                instructorDAO.asignarClase(idInstructor, Integer.parseInt(idClase));
+        // 4. Si el ID es válido (>0), procedemos a guardar las relaciones
+        if (idNuevoInstructor > 0) {
+
+            System.out.println("Instructor creado con ID: " + idNuevoInstructor);
+
+            if (clasesStr != null && !clasesStr.isEmpty()) {
+                // Separamos "1,5" en ["1", "5"]
+                String[] ids = clasesStr.split(",");
+
+                for (String idClaseStr : ids) {
+                    try {
+                        if (!idClaseStr.trim().isEmpty()) {
+                            int idClase = Integer.parseInt(idClaseStr.trim());
+
+                            // 5. LLAMAMOS AL DAO PARA CREAR LA RELACIÓN
+                            // Esto llena la tabla 'instructores_clases'
+                            instructorDAO.asignarClase(idNuevoInstructor, idClase);
+
+                            System.out.println(" -> Relación creada: Instructor " + idNuevoInstructor + " con Clase " + idClase);
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Error parseando ID clase: " + idClaseStr);
+                    }
+                }
             }
-        }
 
-        response.sendRedirect("InstructorServlet");
+            // Todo salió bien
+            response.sendRedirect("AdminDashboardServlet?view=instructores&msg=UsuarioCreado");
+        } else {
+            // Falló al crear (probablemente email duplicado)
+            response.sendRedirect("AdminDashboardServlet?view=instructores&error=ErrorAlCrear");
+        }
     }
 
     /* ===================== ELIMINAR ===================== */

@@ -13,14 +13,13 @@ import java.util.List;
 public class ClienteDAO {
 
     public boolean registrarCliente(Cliente c) {
- // CORRECCIÓN 1: Agregamos la columna 'password' y un ? extra (ahora son 6)
+        // CORRECCIÓN 1: Agregamos la columna 'password' y un ? extra (ahora son 6)
         String sqlCliente = "INSERT INTO clientes(nombre, email, password, telefono, edad, objetivos) VALUES(?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = Conexion.getConnection(); 
-             PreparedStatement psCliente = conn.prepareStatement(sqlCliente, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = Conexion.getConnection(); PreparedStatement psCliente = conn.prepareStatement(sqlCliente, Statement.RETURN_GENERATED_KEYS)) {
 
             if (existeCliente(conn, c)) {
-                return false; 
+                return false;
             }
 
             // CORRECCIÓN 2: Asegurar que el orden coincida con el SQL de arriba
@@ -30,7 +29,7 @@ public class ClienteDAO {
             psCliente.setString(4, c.getTelefono()); // El 4to ? es telefono
             psCliente.setInt(5, c.getEdad());        // El 5to ? es edad
             psCliente.setString(6, c.getObjetivos());// El 6to ? es objetivos
-            
+
             psCliente.executeUpdate();
 
             ResultSet rs = psCliente.getGeneratedKeys();
@@ -52,19 +51,18 @@ public class ClienteDAO {
             return false;
         }
     }
-    
+
     // 2. NUEVO MÉTODO: LOGIN DE CLIENTE
     public Cliente loginCliente(String email, String password) {
         Cliente c = null;
         String sql = "SELECT * FROM clientes WHERE email = ? AND password = ?";
-        
-        try (Connection conn = Conexion.getConnection(); 
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+
+        try (Connection conn = Conexion.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setString(1, email);
             ps.setString(2, password);
             ResultSet rs = ps.executeQuery();
-            
+
             if (rs.next()) {
                 c = new Cliente();
                 c.setId(rs.getInt("id"));
@@ -74,17 +72,28 @@ public class ClienteDAO {
                 c.setTelefono(rs.getString("telefono"));
                 c.setObjetivos(rs.getString("objetivos"));
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return c;
     }
 
-    
-/**
-     * Actualiza cliente. Si 'password' tiene valor, lo actualiza. Si es null/vacío, lo ignora.
+    /**
+     * Actualiza cliente. Si 'password' tiene valor, lo actualiza. Si es
+     * null/vacío, lo ignora.
+     */
+    /**
+     * Actualiza cliente. Si 'password' tiene valor, lo actualiza. Si es
+     * null/vacío, lo ignora. También actualiza la fecha de vencimiento de la
+     * última suscripción del cliente según la duración de la suscripción.
+     */
+    /**
+     * Actualiza cliente. Si 'password' tiene valor, lo actualiza. Si es
+     * null/vacío, lo ignora. También actualiza la fecha de vencimiento de la
+     * última suscripción del cliente según el tipo de suscripción.
      */
     public boolean actualizarCliente(int id, String nombre, String email, String password, String telefono, int edad, int idNuevaSuscripcion) {
-        
-        // Construimos el SQL dinámicamente dependiendo si hay cambio de contraseña
+
         String sqlCliente;
         boolean cambiarPass = (password != null && !password.trim().isEmpty());
 
@@ -93,8 +102,6 @@ public class ClienteDAO {
         } else {
             sqlCliente = "UPDATE clientes SET nombre=?, email=?, telefono=?, edad=? WHERE id=?";
         }
-        
-        String sqlSus = "UPDATE suscripciones_cliente SET id_suscripcion=? WHERE id_cliente=? ORDER BY fecha_inicio DESC LIMIT 1";
 
         Connection conn = null;
         try {
@@ -106,28 +113,60 @@ public class ClienteDAO {
                 int i = 1;
                 ps.setString(i++, nombre);
                 ps.setString(i++, email);
-                
+
                 if (cambiarPass) {
-                    ps.setString(i++, password); // Aquí iría un hash en un sistema real (MD5/SHA)
+                    ps.setString(i++, password); // Aquí iría un hash en un sistema real
                 }
-                
+
                 ps.setString(i++, telefono);
                 ps.setInt(i++, edad);
                 ps.setInt(i++, id);
-                
+
                 ps.executeUpdate();
             }
 
-            // 2. Actualizar Suscripción
+            // 2. Obtener el tipo de suscripción
+            String tipoSus = "mensual"; // valor por defecto
+            String sqlTipo = "SELECT tipo FROM suscripciones WHERE id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sqlTipo)) {
+                ps.setInt(1, idNuevaSuscripcion);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    tipoSus = rs.getString("tipo").toLowerCase();
+                }
+            }
+
+            // 3. Calcular fecha_fin según tipo de suscripción
+            String fechaFinExpr;
+            switch (tipoSus) {
+                case "mensual":
+                    fechaFinExpr = "DATE_ADD(NOW(), INTERVAL 1 MONTH)";
+                    break;
+                case "trimestral":
+                    fechaFinExpr = "DATE_ADD(NOW(), INTERVAL 3 MONTH)";
+                    break;
+                case "anual":
+                    fechaFinExpr = "DATE_ADD(NOW(), INTERVAL 1 YEAR)";
+                    break;
+                default:
+                    fechaFinExpr = "DATE_ADD(NOW(), INTERVAL 1 MONTH)";
+            }
+
+            // 4. Actualizar última suscripción del cliente
+            String sqlSus = "UPDATE suscripciones_cliente "
+                    + "SET id_suscripcion=?, fecha_inicio=NOW(), fecha_fin=" + fechaFinExpr + " "
+                    + "WHERE id_cliente=? ORDER BY fecha_inicio DESC LIMIT 1";
+
             try (PreparedStatement ps = conn.prepareStatement(sqlSus)) {
                 ps.setInt(1, idNuevaSuscripcion);
                 ps.setInt(2, id);
                 int filas = ps.executeUpdate();
-                
-                // Insertar si no existía (Misma lógica de antes)
-                if(filas == 0) {
-                    String sqlInsert = "INSERT INTO suscripciones_cliente (id_cliente, id_suscripcion, fecha_inicio, fecha_fin) VALUES (?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY))";
-                    try(PreparedStatement psIn = conn.prepareStatement(sqlInsert)){
+
+                // 5. Insertar si no existía
+                if (filas == 0) {
+                    String sqlInsert = "INSERT INTO suscripciones_cliente (id_cliente, id_suscripcion, fecha_inicio, fecha_fin) "
+                            + "VALUES (?, ?, NOW(), " + fechaFinExpr + ")";
+                    try (PreparedStatement psIn = conn.prepareStatement(sqlInsert)) {
                         psIn.setInt(1, id);
                         psIn.setInt(2, idNuevaSuscripcion);
                         psIn.executeUpdate();
@@ -140,36 +179,47 @@ public class ClienteDAO {
 
         } catch (Exception e) {
             e.printStackTrace();
-            try { if (conn != null) conn.rollback(); } catch (Exception ex) {}
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (Exception ex) {
+            }
             return false;
         } finally {
-            try { if (conn != null) conn.close(); } catch (Exception e) {}
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+            }
         }
     }
+
     // 3. NUEVO MÉTODO: OBTENER DATOS COMPLETOS PARA DASHBOARD
-   // Método que usa AuthServlet para llenar el panel
+    // Método que usa AuthServlet para llenar el panel
     public Cliente obtenerDetallesCliente(int idCliente) {
         Cliente c = null;
-        
-        // Hacemos JOIN con 'suscripciones_cliente' para sacar la fecha_fin real
-        String sql = "SELECT c.*, " +
-                     "COALESCE(cl.nombre, 'Sin clase') as nombre_clase, " +
-                     "COALESCE(s.tipo, 'Sin plan') as tipo_suscripcion, " +
-                     "sc.fecha_fin " +  // <--- Aquí pedimos la fecha a la base de datos
-                     "FROM clientes c " +
-                     "LEFT JOIN clases_cliente cc ON c.id = cc.id_cliente " +
-                     "LEFT JOIN clases cl ON cc.id_clase = cl.id " +
-                     "LEFT JOIN suscripciones_cliente sc ON c.id = sc.id_cliente " +
-                     "LEFT JOIN suscripciones s ON sc.id_suscripcion = s.id " +
-                     "WHERE c.id = ? " +
-                     "ORDER BY sc.fecha_inicio DESC LIMIT 1";
 
-        try (Connection conn = Conexion.getConnection(); 
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+        // Hacemos JOIN con 'suscripciones_cliente' para sacar la fecha_fin real
+        String sql = "SELECT c.*, "
+                + "COALESCE(cl.nombre, 'Sin clase') as nombre_clase, "
+                + "COALESCE(s.tipo, 'Sin plan') as tipo_suscripcion, "
+                + "sc.fecha_fin "
+                + // <--- Aquí pedimos la fecha a la base de datos
+                "FROM clientes c "
+                + "LEFT JOIN clases_cliente cc ON c.id = cc.id_cliente "
+                + "LEFT JOIN clases cl ON cc.id_clase = cl.id "
+                + "LEFT JOIN suscripciones_cliente sc ON c.id = sc.id_cliente "
+                + "LEFT JOIN suscripciones s ON sc.id_suscripcion = s.id "
+                + "WHERE c.id = ? "
+                + "ORDER BY sc.fecha_inicio DESC LIMIT 1";
+
+        try (Connection conn = Conexion.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setInt(1, idCliente);
             ResultSet rs = ps.executeQuery();
-            
+
             if (rs.next()) {
                 c = new Cliente();
                 // Llenamos datos básicos
@@ -179,20 +229,21 @@ public class ClienteDAO {
                 c.setTelefono(rs.getString("telefono"));
                 c.setEdad(rs.getInt("edad"));
                 c.setObjetivos(rs.getString("objetivos"));
-                
+
                 // Llenamos los auxiliares
                 c.setClase(rs.getString("nombre_clase"));
                 c.setPlazo(rs.getString("tipo_suscripcion"));
-                
+
                 // AQUÍ GUARDAMOS LA FECHA EN EL OBJETO
                 // Si es nula, guardamos un texto vacío o null
-                c.setFechaFin(rs.getString("fecha_fin")); 
+                c.setFechaFin(rs.getString("fecha_fin"));
             }
-        } catch (Exception e) { 
-            e.printStackTrace(); 
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return c;
     }
+
     private void registrarClaseCliente(Connection conn, int idCliente, String clase) throws Exception {
         if (clase.equals("sin-clase")) {
             return;
@@ -249,7 +300,7 @@ public class ClienteDAO {
                 break;
             case "anual":
                 idSus = 5;
-                break;          
+                break;
             default:
                 idSus = 1;
                 break;
@@ -351,13 +402,13 @@ public class ClienteDAO {
 
 // Método para eliminar cliente y todo su historial (Transaccional)
     public boolean eliminarCliente(int id) {
-        
+
         String sqlSus = "DELETE FROM suscripciones_cliente WHERE id_cliente = ?";
         String sqlClases = "DELETE FROM clases_cliente WHERE id_cliente = ?";
         String sqlCliente = "DELETE FROM clientes WHERE id = ?";
-        
+
         Connection conn = null;
-        
+
         try {
             conn = Conexion.getConnection();
             conn.setAutoCommit(false); // IMPORTANTE: Iniciamos modo manual
@@ -378,7 +429,7 @@ public class ClienteDAO {
             try (PreparedStatement ps = conn.prepareStatement(sqlCliente)) {
                 ps.setInt(1, id);
                 int filas = ps.executeUpdate();
-                
+
                 if (filas > 0) {
                     conn.commit(); // Confirmamos TODOS los cambios
                     return true;
@@ -390,10 +441,20 @@ public class ClienteDAO {
 
         } catch (Exception e) {
             e.printStackTrace();
-            try { if (conn != null) conn.rollback(); } catch (Exception ex) {}
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (Exception ex) {
+            }
             return false;
         } finally {
-            try { if (conn != null) conn.close(); } catch (Exception e) {}
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (Exception e) {
+            }
         }
     }
 

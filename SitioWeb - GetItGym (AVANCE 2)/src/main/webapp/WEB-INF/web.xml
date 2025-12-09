@@ -24,6 +24,10 @@
         <servlet-name>EliminarInstructorServlet</servlet-name>
         <servlet-class>Servlets.EliminarInstructorServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>RegistrarInstructorServlet</servlet-name>
+        <servlet-class>Servlets.RegistrarInstructorServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>ClienteRegistroServlet</servlet-name>
         <url-pattern>/ClienteRegistroServlet</url-pattern>
@@ -43,6 +47,10 @@
     <servlet-mapping>
         <servlet-name>EliminarInstructorServlet</servlet-name>
         <url-pattern>/EliminarInstructorServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>RegistrarInstructorServlet</servlet-name>
+        <url-pattern>/RegistrarInstructorServlet</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>
