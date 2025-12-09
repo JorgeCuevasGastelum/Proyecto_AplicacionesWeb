@@ -13,114 +13,127 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Mi Perfil - Get It Gym</title>
+    
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/font-awesome.css">
-    <link rel="stylesheet" href="assets/css/templatemo-training-studio.css">
-    <style>
-        body { background-color: #f4f4f4; }
-        .hero-profile {
-            background: linear-gradient(rgba(35,45,57,0.9), rgba(35,45,57,0.9)), url('assets/images/cta-bg.jpg');
-            background-size: cover;
-            height: 250px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-align: center;
-        }
-        .profile-card {
-            background: white;
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin-top: -60px; /* Efecto traslapado */
-        }
-        .stat-box {
-            background: #f9f9f9;
-            border-left: 4px solid #fb030a;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .stat-title { color: #888; font-size: 0.9rem; text-transform: uppercase; font-weight: 600; }
-        .stat-value { font-size: 1.5rem; font-weight: 700; color: #232d39; }
-        .btn-logout { background-color: #fb030a; color: white; padding: 10px 25px; border-radius: 5px; font-weight: 600; }
-        .btn-logout:hover { background-color: #d90206; color: white; }
-    </style>
+    <link rel="stylesheet" href="assets/css/panelAdmin.css"> 
 </head>
 <body>
 
-    <header class="header-area header-sticky background-header">
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <nav class="main-nav">
-                        <a href="index.html" class="logo">GET IT<em> GYM</em></a>
-                        <ul class="nav">
-                            <li><a href="index.html">Inicio</a></li>
-                            <li><a href="AuthServlet" class="active">Cerrar Sesión</a></li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-        </div>
-    </header>
+    <div class="overlay" onclick="toggleMenu()"></div>
 
-    <div class="hero-profile">
-        <div>
-            <h1>Hola, <span style="color: #fb030a;"><%= c.getNombre() %></span></h1>
-            <p>Bienvenido a tu panel de socio</p>
+    <div class="sidebar" id="sidebar">
+        <div class="logo-box">
+            <h3>GET IT <span>GYM</span></h3>
+            <p style="margin:0; font-size: 0.8rem; color: #777;">Portal de Socios</p>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="#" class="active">
+                <i class="fa fa-user"></i> Mi Perfil
+            </a>
+            <a href="index.html#schedule">
+                <i class="fa fa-calendar"></i> Ver Horarios
+            </a>
+            <a href="index.html#contact-us">
+                <i class="fa fa-envelope"></i> Contacto
+            </a>
+        </div>
+
+        <div class="logout-box">
+            <a href="AuthServlet" class="btn-logout">
+                <i class="fa fa-sign-out"></i> Cerrar Sesión
+            </a>
         </div>
     </div>
 
-    <div class="container mb-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="profile-card">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4 class="mb-4">Tu Membresía</h4>
-                            
-                            <div class="stat-box">
-                                <div class="stat-title"><i class="fa fa-id-card"></i> Plan Actual</div>
-                                <div class="stat-value"><%= c.getPlazo() != null ? c.getPlazo().toUpperCase() : "SIN PLAN" %></div>
-                            </div>
+    <div class="main-content">
+        <button class="mobile-toggle" onclick="toggleMenu()"><i class="fa fa-bars"></i></button>
 
-                            <div class="stat-box">
-                                <div class="stat-title"><i class="fa fa-dumbbell"></i> Clase Inscrita</div>
-                                <div class="stat-value"><%= c.getClase() != null ? c.getClase() : "Ninguna" %></div>
-                            </div>
-                            
-                            <div class="stat-box">
-                                <div class="stat-title"><i class="fa fa-calendar-check-o"></i> Vence el</div>
-                                <div class="stat-value" style="color: #fb030a;">
-                                    <%= c.getFechaFin() != null ? c.getFechaFin() : "N/A" %>
-                                </div>
-                            </div>
+        <div class="content-section active">
+            <h2>Bienvenido, <span style="color: #fb030a;"><%= c.getNombre() %></span></h2>
+            <p style="color: #aaa; margin-bottom: 30px;">Aquí tienes el estado actual de tu membresía.</p>
+
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="stat-card">
+                        <i class="fa fa-info-circle fa-3x" style="color: #fb030a; margin-bottom: 15px;"></i>
+                        <div class="stat-label">Plan Actual</div>
+                        <div class="stat-number" style="font-size: 1.5rem;">
+                            <%= c.getPlazo() != null ? c.getPlazo().toUpperCase() : "SIN PLAN" %>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="col-md-6">
-                            <h4 class="mb-4">Mis Datos</h4>
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item"><strong>Email:</strong> <%= c.getEmail() %></li>
-                                <li class="list-group-item"><strong>Teléfono:</strong> <%= c.getTelefono() %></li>
-                                <li class="list-group-item"><strong>Edad:</strong> <%= c.getEdad() %> años</li>
-                                <li class="list-group-item"><strong>Objetivo:</strong> <%= c.getObjetivos() %></li>
-                            </ul>
-                            
-                            <div class="mt-4 text-center">
-                                <a href="index.html#schedule" class="btn btn-outline-dark btn-block">Ver Horarios de Clases</a>
-                            </div>
+                <div class="col-md-4 mb-3">
+                    <div class="stat-card">
+                        <i class="fa fa-trophy fa-3x" style="color: #fb030a; margin-bottom: 15px;"></i>
+                        <div class="stat-label">Clase Inscrita</div>
+                        <div class="stat-number" style="font-size: 1.5rem;">
+                            <%= c.getClase() != null ? c.getClase() : "Ninguna" %>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="stat-card">
+                        <i class="fa fa-calendar fa-3x" style="color: #fb030a; margin-bottom: 15px;"></i>
+                        <div class="stat-label">Vencimiento</div>
+                        <div class="stat-number" style="font-size: 1.5rem; color: #fff;">
+                            <%= c.getFechaFin() != null ? c.getFechaFin() : "N/A" %>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <div class="card-dark">
+                <div class="card-header-flex">
+                    <h2 style="margin:0; border:none;"><i class="fa fa-user"></i> Mis Datos</h2>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label style="color: #fb030a; font-size: 0.85rem; text-transform: uppercase;">Correo Electrónico</label>
+                        <div style="font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 5px;">
+                            <%= c.getEmail() %>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label style="color: #fb030a; font-size: 0.85rem; text-transform: uppercase;">Teléfono</label>
+                        <div style="font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 5px;">
+                            <%= c.getTelefono() %>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label style="color: #fb030a; font-size: 0.85rem; text-transform: uppercase;">Edad</label>
+                        <div style="font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 5px;">
+                            <%= c.getEdad() %> años
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label style="color: #fb030a; font-size: 0.85rem; text-transform: uppercase;">Objetivo Principal</label>
+                        <div style="font-size: 1.1rem; border-bottom: 1px solid #333; padding-bottom: 5px; font-style: italic;">
+                            "<%= c.getObjetivos() %>"
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
 
     <script src="assets/js/jquery-2.1.0.min.js"></script>
+    <script src="assets/js/popper.js"></script>
     <script src="assets/js/bootstrap.min.js"></script>
-    <script src="assets/js/custom.js"></script>
+
+    <script>
+        // Función para menú móvil (reutilizada del admin)
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.querySelector('.overlay').classList.toggle('active');
+        }
+    </script>
 </body>
 </html>
